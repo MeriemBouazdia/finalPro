@@ -1,0 +1,100 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter pub add dash_chat_2
+
+## exception
+
+PathExistsException: PathExistsException: Cannot create link, path = 'C:\Users\Onteek\Desktop\greenhouseapp\app\windows\flutter\ephemeral\.plugin_symlinks\firebase_core' (OS Error: Impossible de créer un fichier déjà existant.
+, errno = 183)
+
+```
+#0      _Link.throwIfError (dart:io/link.dart:358:7)
+#1      _Link.createSync (dart:io/link.dart:276:5)
+#2      ForwardingLink.createSync (package:file/src/forwarding/forwarding_link.dart:20:16)
+#3      ForwardingLink.createSync (package:file/src/forwarding/forwarding_link.dart:20:16)
+#4      _createPlatformPluginSymlinks (package:flutter_tools/src/flutter_plugins.dart:1143:12)
+#5      createPluginSymlinks (package:flutter_tools/src/flutter_plugins.dart:1060:5)
+#6      refreshPluginsList (package:flutter_tools/src/flutter_plugins.dart:1192:5)
+<asynchronous suspension>
+#7      FlutterProject.ensureReadyForPlatformSpecificTooling (package:flutter_tools/src/project.dart:376:5)
+<asynchronous suspension>
+#8      PackagesGetCommand.runCommand (package:flutter_tools/src/commands/packages.dart:395:9)
+<asynchronous suspension>
+#9      FlutterCommand.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command.dart:1581:27)
+<asynchronous suspension>
+#10     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#11     CommandRunner.runCommand (package:args/command_runner.dart:212:13)
+<asynchronous suspension>
+#12     FlutterCommandRunner.runCommand.<anonymous closure> (package:flutter_tools/src/runner/flutter_command_runner.dart:503:9)
+<asynchronous suspension>
+#13     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#14     FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:438:5)
+<asynchronous suspension>
+#15     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:98:11)
+<asynchronous suspension>
+#16     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#17     main (package:flutter_tools/executable.dart:101:3)
+<asynchronous suspension>
+```
+
+## flutter doctor
+
+```
+[✓] Flutter (Channel stable, 3.35.6, on Microsoft Windows [version 10.0.26200.7462], locale fr-FR) [1 210ms]
+    • Flutter version 3.35.6 on channel stable at C:\Users\Onteek\Downloads\flutter_windows_3.35.6-stable\flutter
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision 9f455d2486 (3 months ago), 2025-10-08 14:55:31 -0500
+    • Engine revision d2913632a4
+    • Dart version 3.9.2
+    • DevTools version 2.48.0
+    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-lldb-debugging
+
+[✓] Windows Version (11 Professionnel 64-bit, 25H2, 2009) [9,6s]
+
+[✓] Android toolchain - develop for Android devices (Android SDK version 36.1.0) [15,4s]
+    • Android SDK at C:\Users\Onteek\AppData\Local\Android\sdk
+    • Emulator version unknown
+    • Platform android-36, build-tools 36.1.0
+    • Java binary at: C:\Program Files\Android\Android Studio\jbr\bin\java
+      This is the JDK bundled with the latest Android Studio installation on this machine.
+      To manually set the JDK path, use: `flutter config --jdk-dir="path/to/jdk"`.
+    • Java version OpenJDK Runtime Environment (build 21.0.7+-13880790-b1038.58)
+    • All Android licenses accepted.
+
+[✓] Chrome - develop for the web [430ms]
+    • Chrome at C:\Users\Onteek\AppData\Local\Google\Chrome\Application\chrome.exe
+
+[✓] Visual Studio - develop Windows apps (Visual Studio Community 2022 17.14.16) [424ms]
+    • Visual Studio at C:\Program Files\Microsoft Visual Studio\2022\Community
+    • Visual Studio Community 2022 version 17.14.36518.9
+    • Windows 10 SDK version 10.0.26100.0
+
+[✓] Android Studio (version 2025.1.3) [33ms]
+    • Android Studio at C:\Program Files\Android\Android Studio
+    • Flutter plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/9212-flutter
+    • Dart plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/6351-dart
+    • Java version OpenJDK Runtime Environment (build 21.0.7+-13880790-b1038.58)
+
+[✓] VS Code (version 1.107.1) [26ms]
+    • VS Code at C:\Users\Onteek\AppData\Local\Programs\Microsoft VS Code
+    • Flutter extension version 3.124.0
+
+[✓] Connected device (4 available) [1 580ms]
+    • sdk gphone64 x86 64 (mobile) • emulator-5554 • android-x64    • Android 16 (API 36) (emulator)
+    • Windows (desktop)            • windows       • windows-x64    • Microsoft Windows [version 10.0.26200.7462]
+    • Chrome (web)                 • chrome        • web-javascript • Google Chrome 143.0.7499.147
+    • Edge (web)                   • edge          • web-javascript • Microsoft Edge 143.0.3650.96
+
+[✓] Network resources [1 213ms]
+    • All expected network resources are available.
+
+• No issues found!
+```
