@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "544572974576",
+    "project_id": "greenhouseapp-bd86f",
+    "storage_bucket": "greenhouseapp-bd86f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:544572974576:android:c9ff16a92a74972bc2e935",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKxbB18FefnvSQBR8uMRW6YMayKiLrVsI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
