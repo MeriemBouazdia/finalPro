@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../translations.dart';
 import 'pages/register.dart';
 
 class Login extends StatefulWidget {
@@ -14,10 +15,12 @@ class _LoginState extends State<Login> {
   final TextEditingController password = TextEditingController();
 
   Future<void> signIn() async {
+    final tr = Translations.of(context);
+
     if (email.text.isEmpty || password.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter email and password"),
+        SnackBar(
+          content: Text(tr.get('pleaseEnterEmailPassword')),
           backgroundColor: Colors.red,
         ),
       );
@@ -38,25 +41,25 @@ class _LoginState extends State<Login> {
 
       switch (e.code) {
         case 'user-not-found':
-          errorMsg = 'No account found for this email.';
+          errorMsg = tr.get('noAccountFound');
           break;
         case 'wrong-password':
-          errorMsg = 'Incorrect password.';
+          errorMsg = tr.get('incorrectPassword');
           break;
         case 'invalid-email':
-          errorMsg = 'Please enter a valid email.';
+          errorMsg = tr.get('invalidEmail');
           break;
         case 'user-disabled':
-          errorMsg = 'This account has been disabled.';
+          errorMsg = tr.get('accountDisabled');
           break;
         case 'too-many-requests':
-          errorMsg = 'Too many attempts. Try again later.';
+          errorMsg = tr.get('tooManyRequests');
           break;
         case 'network-request-failed':
-          errorMsg = 'No internet connection.';
+          errorMsg = tr.get('noInternet');
           break;
         default:
-          errorMsg = e.message ?? 'Login failed.';
+          errorMsg = e.message ?? tr.get('loginFailed');
       }
 
       if (!mounted) return;
@@ -79,6 +82,8 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
+
     return Scaffold(
       backgroundColor: Colors.green.shade50,
       body: Center(
@@ -97,12 +102,12 @@ class _LoginState extends State<Login> {
                   children: [
                     Image.asset("assets/Login-amico.png", height: 150),
                     const SizedBox(height: 20),
-                    const Text(
-                      "Welcome Back",
+                    Text(
+                      tr.get('welcomeBack'),
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 4, 114, 17),
+                        color: const Color.fromARGB(255, 4, 114, 17),
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -111,7 +116,7 @@ class _LoginState extends State<Login> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.email),
-                        hintText: "Email",
+                        hintText: tr.get('email'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -123,7 +128,7 @@ class _LoginState extends State<Login> {
                       obscureText: true,
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.lock),
-                        hintText: "Password",
+                        hintText: tr.get('password'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -142,9 +147,9 @@ class _LoginState extends State<Login> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(
+                        child: Text(
+                          tr.get('login'),
+                          style: const TextStyle(
                             fontSize: 16,
                             color: Colors.white,
                           ),
@@ -155,7 +160,9 @@ class _LoginState extends State<Login> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("Don't have an account? "),
+                        Text(
+                          tr.get('dontHaveAccount'),
+                        ),
                         GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -165,9 +172,9 @@ class _LoginState extends State<Login> {
                               ),
                             );
                           },
-                          child: const Text(
-                            "Sign Up",
-                            style: TextStyle(
+                          child: Text(
+                            tr.get('signUp'),
+                            style: const TextStyle(
                               color: Color.fromARGB(255, 2, 117, 17),
                               fontWeight: FontWeight.bold,
                             ),

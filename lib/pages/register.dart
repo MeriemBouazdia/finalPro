@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-
+import '../../translations.dart';
 
 class Register extends StatefulWidget {
-  const Register({Key? key}) : super(key: key);
+  const Register({super.key});
 
   @override
   State<Register> createState() => _RegisterPageState();
@@ -69,49 +69,54 @@ class _RegisterPageState extends State<Register>
   }
 
   String? _validateEmail(String? value) {
+    final tr = Translations.of(context);
     if (value == null || value.isEmpty) {
-      return 'Email is required';
+      return tr.get('emailRequired');
     }
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
-      return 'Please enter a valid email';
+      return tr.get('validEmail');
     }
     return null;
   }
 
   String? _validatePassword(String? value) {
+    final tr = Translations.of(context);
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return tr.get('passwordRequired');
     }
     if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+      return tr.get('passwordMinLength');
     }
     return null;
   }
 
   String? _validateConfirmPassword(String? value) {
+    final tr = Translations.of(context);
     if (value == null || value.isEmpty) {
-      return 'Please confirm your password';
+      return tr.get('confirmPasswordRequired');
     }
     if (value != passwordController.text) {
-      return 'Passwords do not match';
+      return tr.get('passwordsDoNotMatch');
     }
     return null;
   }
 
   String? _validateName(String? value) {
+    final tr = Translations.of(context);
     if (value == null || value.isEmpty) {
-      return 'Full name is required';
+      return tr.get('nameRequired');
     }
     if (value.length < 2) {
-      return 'Name must be at least 2 characters';
+      return tr.get('nameMinLength');
     }
     return null;
   }
 
   String? _validateFarmLocation(String? value) {
+    final tr = Translations.of(context);
     if (_isFarmer && (value == null || value.isEmpty)) {
-      return 'Farm location is required';
+      return tr.get('farmLocationRequired');
     }
     return null;
   }
@@ -119,6 +124,7 @@ class _RegisterPageState extends State<Register>
   Future<void> register() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final tr = Translations.of(context);
     setState(() => isLoading = true);
 
     try {
@@ -150,8 +156,8 @@ class _RegisterPageState extends State<Register>
             children: [
               const Icon(Icons.check_circle, color: Colors.white),
               const SizedBox(width: 8),
-              Text(
-                  "Welcome ${nameController.text}! Account created successfully."),
+              Text(tr
+                  .getWithParams('welcomeUser', {'name': nameController.text})),
             ],
           ),
           backgroundColor: primaryGreen,
@@ -169,19 +175,20 @@ class _RegisterPageState extends State<Register>
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
+      final tr = Translations.of(context);
       String errorMsg;
       switch (e.code) {
         case 'email-already-in-use':
-          errorMsg = "This email is already registered";
+          errorMsg = tr.get('emailAlreadyRegistered');
           break;
         case 'weak-password':
-          errorMsg = "Password is too weak (min. 6 characters)";
+          errorMsg = tr.get('weakPassword');
           break;
         case 'invalid-email':
-          errorMsg = "Invalid email address";
+          errorMsg = tr.get('invalidEmailAddress');
           break;
         default:
-          errorMsg = e.message ?? "Registration failed";
+          errorMsg = e.message ?? tr.get('registrationFailed');
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -202,13 +209,14 @@ class _RegisterPageState extends State<Register>
       );
     } catch (e) {
       if (!mounted) return;
+      final tr = Translations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
-              Icon(Icons.error_outline, color: Colors.white),
-              SizedBox(width: 8),
-              Text("An error occurred. Please try again."),
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(tr.get('errorOccurred')),
             ],
           ),
           backgroundColor: Colors.red.shade700,
@@ -226,6 +234,9 @@ class _RegisterPageState extends State<Register>
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
+    final isRtl = tr.isRtl;
+
     return Scaffold(
       backgroundColor: softGreen,
       body: SafeArea(
@@ -238,12 +249,12 @@ class _RegisterPageState extends State<Register>
               child: Column(
                 children: [
                   // Header Section
-                  _buildHeader(),
+                  _buildHeader(tr, isRtl),
 
                   // Form Card
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-                    child: _buildFormCard(),
+                    child: _buildFormCard(tr, isRtl),
                   ),
                 ],
               ),
@@ -254,7 +265,7 @@ class _RegisterPageState extends State<Register>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(Translations tr, bool isRtl) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 40, 24, 30),
       child: Column(
@@ -282,7 +293,7 @@ class _RegisterPageState extends State<Register>
                 borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
-                    color: primaryGreen.withOpacity(0.3),
+                    color: primaryGreen.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -298,20 +309,21 @@ class _RegisterPageState extends State<Register>
           const SizedBox(height: 24),
 
           // Title
-          const Text(
-            "Create Account",
-            style: TextStyle(
+          Text(
+            tr.get('createAccount'),
+            style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
               color: darkGreen,
               letterSpacing: -0.5,
             ),
+            textAlign: isRtl ? TextAlign.right : TextAlign.left,
           ),
           const SizedBox(height: 8),
 
           // Subtitle
           Text(
-            "Register to manage your smart greenhouse",
+            tr.get('registerToManage'),
             style: TextStyle(
               fontSize: 15,
               color: Colors.grey.shade600,
@@ -324,7 +336,7 @@ class _RegisterPageState extends State<Register>
     );
   }
 
-  Widget _buildFormCard() {
+  Widget _buildFormCard(Translations tr, bool isRtl) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -332,7 +344,7 @@ class _RegisterPageState extends State<Register>
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -346,8 +358,8 @@ class _RegisterPageState extends State<Register>
             // Full Name Field
             _buildModernTextField(
               controller: nameController,
-              label: "Full Name",
-              hint: "Enter your full name",
+              label: tr.get('fullName'),
+              hint: tr.get('enterFullName'),
               icon: Icons.person_outline,
               validator: _validateName,
               textInputAction: TextInputAction.next,
@@ -357,8 +369,8 @@ class _RegisterPageState extends State<Register>
             // Email Field
             _buildModernTextField(
               controller: emailController,
-              label: "Email",
-              hint: "Enter your email address",
+              label: tr.get('email'),
+              hint: tr.get('enterEmail'),
               icon: Icons.email_outlined,
               validator: _validateEmail,
               keyboardType: TextInputType.emailAddress,
@@ -369,8 +381,8 @@ class _RegisterPageState extends State<Register>
             // Password Field
             _buildModernTextField(
               controller: passwordController,
-              label: "Password",
-              hint: "Enter your password",
+              label: tr.get('password'),
+              hint: tr.get('enterFullName'),
               icon: Icons.lock_outline,
               validator: _validatePassword,
               obscureText: _obscurePassword,
@@ -390,8 +402,8 @@ class _RegisterPageState extends State<Register>
             // Confirm Password Field
             _buildModernTextField(
               controller: confirmPasswordController,
-              label: "Confirm Password",
-              hint: "Re-enter your password",
+              label: tr.get('confirmPassword'),
+              hint: tr.get('reEnterPassword'),
               icon: Icons.lock_outline,
               validator: _validateConfirmPassword,
               obscureText: _obscureConfirmPassword,
@@ -412,12 +424,12 @@ class _RegisterPageState extends State<Register>
             const SizedBox(height: 24),
 
             // User Type Selector
-            _buildUserTypeSelector(),
+            _buildUserTypeSelector(tr),
 
             // Conditional Farmer Fields
             AnimatedCrossFade(
               firstChild: const SizedBox.shrink(),
-              secondChild: _buildFarmerFields(),
+              secondChild: _buildFarmerFields(tr),
               crossFadeState: _isFarmer
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
@@ -428,11 +440,11 @@ class _RegisterPageState extends State<Register>
             const SizedBox(height: 28),
 
             // Register Button
-            _buildRegisterButton(),
+            _buildRegisterButton(tr),
             const SizedBox(height: 20),
 
             // Login Link
-            _buildLoginLink(),
+            _buildLoginLink(tr),
           ],
         ),
       ),
@@ -464,8 +476,8 @@ class _RegisterPageState extends State<Register>
           color: Colors.grey.shade600,
           fontWeight: FontWeight.w500,
         ),
-        hintStyle: TextStyle(
-          color: const Color.fromARGB(255, 4, 4, 4),
+        hintStyle: const TextStyle(
+          color: Color.fromARGB(255, 4, 4, 4),
           fontSize: 14,
         ),
         prefixIcon: Container(
@@ -510,7 +522,7 @@ class _RegisterPageState extends State<Register>
     );
   }
 
-  Widget _buildUserTypeSelector() {
+  Widget _buildUserTypeSelector(Translations tr) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -528,7 +540,7 @@ class _RegisterPageState extends State<Register>
             // Farmer Option
             Expanded(
               child: _buildUserTypeCard(
-                title: "Farmer",
+                title: tr.get('farmer'),
                 icon: Icons.agriculture,
                 isSelected: _isFarmer,
                 onTap: () => setState(() => _isFarmer = true),
@@ -538,7 +550,7 @@ class _RegisterPageState extends State<Register>
             // Visitor Option
             Expanded(
               child: _buildUserTypeCard(
-                title: "Visitor",
+                title: tr.get('visitor'),
                 icon: Icons.person_outline,
                 isSelected: !_isFarmer,
                 onTap: () => setState(() => _isFarmer = false),
@@ -584,7 +596,7 @@ class _RegisterPageState extends State<Register>
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: primaryGreen.withOpacity(0.3),
+                        color: primaryGreen.withValues(alpha: 0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -615,7 +627,7 @@ class _RegisterPageState extends State<Register>
     );
   }
 
-  Widget _buildFarmerFields() {
+  Widget _buildFarmerFields(Translations tr) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -651,9 +663,9 @@ class _RegisterPageState extends State<Register>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Do you have a greenhouse?",
-                        style: TextStyle(
+                      Text(
+                        tr.get('hasGreenhouse'),
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: darkGreen,
@@ -676,8 +688,8 @@ class _RegisterPageState extends State<Register>
                   onChanged: (value) {
                     setState(() => _hasGreenhouse = value);
                   },
-                  activeColor: primaryGreen,
-                  activeTrackColor: accentGreen.withOpacity(0.5),
+                  activeThumbColor: primaryGreen,
+                  activeTrackColor: accentGreen.withValues(alpha: 0.5),
                 ),
               ],
             ),
@@ -687,8 +699,8 @@ class _RegisterPageState extends State<Register>
           // Farm Location Field
           _buildModernTextField(
             controller: farmLocationController,
-            label: "Farm Location",
-            hint: "Enter your farm location",
+            label: tr.get('farmLocation'),
+            hint: tr.get('enterFarmLocation'),
             icon: Icons.location_on_outlined,
             validator: _validateFarmLocation,
             textInputAction: TextInputAction.done,
@@ -698,7 +710,7 @@ class _RegisterPageState extends State<Register>
     );
   }
 
-  Widget _buildRegisterButton() {
+  Widget _buildRegisterButton(Translations tr) {
     return Container(
       height: 56,
       decoration: BoxDecoration(
@@ -710,7 +722,7 @@ class _RegisterPageState extends State<Register>
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryGreen.withOpacity(0.4),
+            color: primaryGreen.withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -731,18 +743,18 @@ class _RegisterPageState extends State<Register>
                       strokeWidth: 2.5,
                     ),
                   )
-                : const Row(
+                : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.app_registration,
                         color: Colors.white,
                         size: 22,
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Text(
-                        "Register",
-                        style: TextStyle(
+                        tr.get('register'),
+                        style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -757,12 +769,12 @@ class _RegisterPageState extends State<Register>
     );
   }
 
-  Widget _buildLoginLink() {
+  Widget _buildLoginLink(Translations tr) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Already have an account? ",
+          tr.get('alreadyHaveAccount'),
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey.shade600,
@@ -770,11 +782,11 @@ class _RegisterPageState extends State<Register>
         ),
         GestureDetector(
           onTap: () {
-            Navigator.pushReplacementNamed(context, '/Login');
+            Navigator.pushReplacementNamed(context, '/login');
           },
-          child: const Text(
-            "Login",
-            style: TextStyle(
+          child: Text(
+            tr.get('loginLink'),
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: primaryGreen,

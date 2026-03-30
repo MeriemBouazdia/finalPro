@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import '../../translations.dart';
 import 'widget/theme_provider.dart';
 
 class ConfigurationPage extends StatefulWidget {
@@ -98,6 +99,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
   // Save data as numbers
   Future<void> saveData() async {
+    final tr = Translations.of(context);
     setState(() => _isSaving = true);
 
     try {
@@ -132,8 +134,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Configuration saved successfully"),
+          SnackBar(
+            content: Text(tr.get('configurationSaved')),
             backgroundColor: Colors.green,
           ),
         );
@@ -142,7 +144,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Error saving: $e"),
+            content:
+                Text(tr.getWithParams('errorSaving', {'error': e.toString()})),
             backgroundColor: Colors.red,
           ),
         );
@@ -230,13 +233,14 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
 
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text("Greenhouse Configuration"),
+          title: Text(tr.get('configuration')),
           centerTitle: true,
           backgroundColor:
               isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFF336A29),
@@ -248,7 +252,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Greenhouse Configuration"),
+        title: Text(tr.get('configuration')),
         centerTitle: true,
         backgroundColor:
             isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFF336A29),
@@ -260,30 +264,30 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
         child: Column(
           children: [
             buildSection(
-                "Temperature Settings",
-                "Min Temperature (°C)",
-                "Max Temperature (°C)",
+                tr.get('temperatureSettings'),
+                tr.get('minTemperature'),
+                tr.get('maxTemperature'),
                 minTempController,
                 maxTempController,
                 isDarkMode),
             buildSection(
-                "Humidity Settings",
-                "Min Humidity (%)",
-                "Max Humidity (%)",
+                tr.get('humiditySettings'),
+                tr.get('minHumidity'),
+                tr.get('maxHumidity'),
                 minHumController,
                 maxHumController,
                 isDarkMode),
             buildSection(
-                "Soil Moisture Settings",
-                "Min Soil Moisture (%)",
-                "Max Soil Moisture (%)",
+                tr.get('soilSettings'),
+                tr.get('minSoil'),
+                tr.get('maxSoil'),
                 minSoilController,
                 maxSoilController,
                 isDarkMode),
             buildSection(
-                "Light Intensity Settings",
-                "Min Light (lux)",
-                "Max Light (lux)",
+                tr.get('lightSettings'),
+                tr.get('minLight'),
+                tr.get('maxLight'),
                 minLightController,
                 maxLightController,
                 isDarkMode),
@@ -308,31 +312,10 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text("Save"),
-                ),
-                OutlinedButton(
-                  onPressed: () {
-                    minTempController.clear();
-                    maxTempController.clear();
-                    minHumController.clear();
-                    maxHumController.clear();
-                    minSoilController.clear();
-                    maxSoilController.clear();
-                    minLightController.clear();
-                    maxLightController.clear();
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        isDarkMode ? Colors.white : const Color(0xFF336A29),
-                    side: const BorderSide(color: Color(0xFF336A29)),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 12),
-                  ),
-                  child: const Text("Reset"),
+                      : Text(tr.get('saveChanges')),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
           ],
         ),
       ),

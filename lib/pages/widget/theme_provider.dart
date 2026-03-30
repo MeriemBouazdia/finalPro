@@ -144,9 +144,9 @@ class ThemeProvider extends ChangeNotifier {
       }),
       trackColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return const Color(0xFF336A29).withOpacity(0.5);
+          return const Color(0xFF336A29).withValues(alpha: 0.5);
         }
-        return Colors.grey.withOpacity(0.3);
+        return Colors.grey.withValues(alpha: 0.3);
       }),
     ),
   );

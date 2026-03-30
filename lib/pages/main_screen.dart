@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../translations.dart';
 import 'home_page.dart';
 import 'chat_page.dart';
 import 'profile_page.dart';
@@ -39,6 +40,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
 
@@ -54,13 +56,15 @@ class _MainScreenState extends State<MainScreen> {
         unselectedItemColor: isDarkMode ? Colors.white54 : Colors.grey,
         backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chatbot'),
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Settings'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          
+              icon: const Icon(Icons.home), label: tr.get('home')),
+          BottomNavigationBarItem(
+              icon: const Icon(Icons.chat), label: tr.get('chat')),
+          BottomNavigationBarItem(
+              icon: const Icon(Icons.settings), label: tr.get('settings')),
+          BottomNavigationBarItem(
+              icon: const Icon(Icons.person), label: tr.get('profile')),
         ],
       ),
     );

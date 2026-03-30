@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'home_page.dart';
 import 'main_screen.dart';
+import '../../translations.dart';
 
 class GHListPage extends StatelessWidget {
   const GHListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
+    final isRtl = tr.isRtl;
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text("Please login first")),
+      return Scaffold(
+        body: Center(
+          child: Text(tr.get('pleaseLoginFirst')),
+        ),
       );
     }
 
@@ -22,7 +26,7 @@ class GHListPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("My Greenhouses"),
+        title: Text(tr.get('myGreenhouses')),
         centerTitle: true,
         backgroundColor: const Color(0xFF336A29),
         foregroundColor: Colors.white,
@@ -30,7 +34,7 @@ class GHListPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF336A29),
         child: const Icon(Icons.add, color: Colors.white),
-        onPressed: () => _showCreateGreenhouseDialog(context, ghRef),
+        onPressed: () => _showCreateGreenhouseDialog(context, ghRef, tr),
       ),
       body: StreamBuilder<DatabaseEvent>(
         stream: ghRef.onValue,
@@ -46,16 +50,16 @@ class GHListPage extends StatelessWidget {
                 children: [
                   const Icon(Icons.eco, size: 80, color: Colors.grey),
                   const SizedBox(height: 16),
-                  const Text(
-                    "No greenhouses yet",
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  Text(
+                    tr.get('noGreenhousesYet'),
+                    style: const TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () =>
-                        _showCreateGreenhouseDialog(context, ghRef),
+                        _showCreateGreenhouseDialog(context, ghRef, tr),
                     icon: const Icon(Icons.add),
-                    label: const Text("Add Greenhouse"),
+                    label: Text(tr.get('addGreenhouse')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF336A29),
                       foregroundColor: Colors.white,
@@ -77,7 +81,7 @@ class GHListPage extends StatelessWidget {
               final ghId = ghList[index].key;
               final ghData = Map<String, dynamic>.from(ghList[index].value);
 
-              final name = ghData["name"]?.toString() ?? "Greenhouse";
+              final name = ghData["name"]?.toString() ?? tr.get('greenhouse');
               final plant = ghData["plant"]?.toString() ?? "";
 
               return Card(
@@ -93,7 +97,10 @@ class GHListPage extends StatelessWidget {
                   title: Text(name,
                       style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: plant.isNotEmpty ? Text(plant) : null,
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  trailing: Icon(
+                    isRtl ? Icons.arrow_back_ios : Icons.arrow_forward_ios,
+                    size: 16,
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -112,7 +119,7 @@ class GHListPage extends StatelessWidget {
   }
 
   void _showCreateGreenhouseDialog(
-      BuildContext context, DatabaseReference ghRef) {
+      BuildContext context, DatabaseReference ghRef, Translations tr) {
     final nameController = TextEditingController();
     final plantController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -120,7 +127,7 @@ class GHListPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Add New Greenhouse"),
+        title: Text(tr.get('addNewGreenhouse')),
         content: Form(
           key: formKey,
           child: Column(
@@ -128,14 +135,14 @@ class GHListPage extends StatelessWidget {
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: "Greenhouse Name",
-                  hintText: "e.g., Greenhouse 1",
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: tr.get('greenhouseName'),
+                  hintText: tr.get('greenhouseNameHint'),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter a name";
+                    return tr.get('enterName');
                   }
                   return null;
                 },
@@ -143,10 +150,10 @@ class GHListPage extends StatelessWidget {
               const SizedBox(height: 16),
               TextFormField(
                 controller: plantController,
-                decoration: const InputDecoration(
-                  labelText: "Plant Type",
-                  hintText: "e.g., Tomatoes",
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: tr.get('plantType'),
+                  hintText: tr.get('plantTypeHint'),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
@@ -155,12 +162,11 @@ class GHListPage extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: Text(tr.get('cancel')),
           ),
           ElevatedButton(
             onPressed: () async {
               if (formKey.currentState!.validate()) {
-                // Generate a unique ID for the new greenhouse
                 final newGhRef = ghRef.push();
                 final newGhId = newGhRef.key;
 
@@ -170,7 +176,6 @@ class GHListPage extends StatelessWidget {
                   "createdAt": DateTime.now().toIso8601String(),
                 });
 
-                // Also initialize default targets and sensors
                 await newGhRef.child("targets").set({
                   "temperature": {"min": 18, "max": 30},
                   "humidity": {"min": 40, "max": 80},
@@ -210,7 +215,7 @@ class GHListPage extends StatelessWidget {
               backgroundColor: const Color(0xFF336A29),
               foregroundColor: Colors.white,
             ),
-            child: const Text("Create"),
+            child: Text(tr.get('create')),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../translations.dart';
 
 class DeviceControl extends StatefulWidget {
   final String ghId;
@@ -20,8 +21,7 @@ class _DeviceControlState extends State<DeviceControl> {
   late DatabaseReference _actuatorsRef;
   StreamSubscription<DatabaseEvent>? _actuatorsSubscription;
 
-  // Local cache for device states
-  Map<String, bool> _deviceStates = {
+  final Map<String, bool> _deviceStates = {
     'pump': false,
     'light': false,
     'fan': false,
@@ -138,6 +138,8 @@ class _DeviceControlState extends State<DeviceControl> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -186,29 +188,33 @@ class _DeviceControlState extends State<DeviceControl> {
             ),
           ),
         SwitchListTile(
-          title: const Text("Pump"),
-          subtitle: Text(_deviceStates['pump'] == true ? "ON" : "OFF"),
+          title: Text(tr.get('pump')),
+          subtitle: Text(
+              _deviceStates['pump'] == true ? tr.get('on') : tr.get('off')),
           value: _deviceStates['pump'] ?? false,
           onChanged: (val) => _updateDevice("pump", val),
           secondary: const Icon(Icons.water_drop),
         ),
         SwitchListTile(
-          title: const Text("Light"),
-          subtitle: Text(_deviceStates['light'] == true ? "ON" : "OFF"),
+          title: Text(tr.get('lightDevice')),
+          subtitle: Text(
+              _deviceStates['light'] == true ? tr.get('on') : tr.get('off')),
           value: _deviceStates['light'] ?? false,
           onChanged: (val) => _updateDevice("light", val),
           secondary: const Icon(Icons.lightbulb),
         ),
         SwitchListTile(
-          title: const Text("Fan"),
-          subtitle: Text(_deviceStates['fan'] == true ? "ON" : "OFF"),
+          title: Text(tr.get('fan')),
+          subtitle:
+              Text(_deviceStates['fan'] == true ? tr.get('on') : tr.get('off')),
           value: _deviceStates['fan'] ?? false,
           onChanged: (val) => _updateDevice("fan", val),
           secondary: const Icon(Icons.air),
         ),
         SwitchListTile(
-          title: const Text("Vent"),
-          subtitle: Text(_deviceStates['vent'] == true ? "ON" : "OFF"),
+          title: Text(tr.get('heater')),
+          subtitle: Text(
+              _deviceStates['vent'] == true ? tr.get('on') : tr.get('off')),
           value: _deviceStates['vent'] ?? false,
           onChanged: (val) => _updateDevice("vent", val),
           secondary: const Icon(Icons.window),

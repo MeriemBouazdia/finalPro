@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:provider/provider.dart';
+import '../../translations.dart';
 import 'widget/theme_provider.dart';
 import 'device_control.dart';
 
@@ -21,13 +22,17 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
+    final isRtl = tr.isRtl;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('Please login first')),
+      return Scaffold(
+        body: Center(
+          child: Text(tr.get('pleaseLoginFirst')),
+        ),
       );
     }
 
@@ -36,7 +41,7 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Greenhouse Dashboard"),
+        title: Text(tr.get('greenhouseDashboard')),
         centerTitle: true,
         backgroundColor:
             isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFF336A29),
@@ -66,7 +71,7 @@ class HomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No sensor data available',
+                    tr.get('noSensorData'),
                     style: TextStyle(
                       fontSize: 16,
                       color: isDarkMode ? Colors.white70 : Colors.grey[600],
@@ -105,7 +110,7 @@ class HomePage extends StatelessWidget {
                     mainAxisSpacing: 15,
                     children: [
                       SensorRadialCard(
-                        title: "🌡 Temp",
+                        title: tr.get('temp'),
                         value: temp,
                         max: 50,
                         color: Colors.red,
@@ -113,7 +118,7 @@ class HomePage extends StatelessWidget {
                         unit: "°C",
                       ),
                       SensorRadialCard(
-                        title: "💧 Humidity",
+                        title: tr.get('humidity'),
                         value: humidity,
                         max: 100,
                         color: Colors.blue,
@@ -121,7 +126,7 @@ class HomePage extends StatelessWidget {
                         unit: "%",
                       ),
                       SensorRadialCard(
-                        title: "🌱 Soil",
+                        title: tr.get('soil'),
                         value: soil,
                         max: 100,
                         color: Colors.green,
@@ -129,7 +134,7 @@ class HomePage extends StatelessWidget {
                         unit: "%",
                       ),
                       SensorRadialCard(
-                        title: "☀️ Light",
+                        title: tr.get('light'),
                         value: light,
                         max: 2000,
                         color: Colors.orange,
@@ -165,58 +170,59 @@ class SensorRadialCard extends StatelessWidget {
     required this.max,
     required this.color,
     required this.isDarkMode,
-    this.unit = "",
+    required this.unit,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 5,
-      color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+    final percentage = (value / max).clamp(0.0, 1.0);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: CircularProgressIndicator(
+                  value: percentage,
+                  strokeWidth: 8,
+                  backgroundColor: color.withValues(alpha: 0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ),
+              Text(
+                '${value.toStringAsFixed(1)}$unit',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Text(
             title,
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Expanded(
-            child: SfCircularChart(
-              series: <CircularSeries>[
-                RadialBarSeries<double, String>(
-                  dataSource: [value.clamp(0, max)],
-                  xValueMapper: (value, _) => '',
-                  yValueMapper: (value, _) => value,
-                  maximumValue: max,
-                  radius: '90%',
-                  innerRadius: '60%',
-                  cornerStyle: CornerStyle.bothCurve,
-                  pointColorMapper: (_, __) => color,
-                  dataLabelSettings: DataLabelSettings(
-                    isVisible: true,
-                    labelPosition: ChartDataLabelPosition.inside,
-                    builder:
-                        (data, point, series, pointIndex, dataLabelMapper) {
-                      return Text(
-                        '${value.toStringAsFixed(1)}$unit',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : Colors.black87,
-                        ),
-                      );
-                    },
-                  ),
-                )
-              ],
+              fontWeight: FontWeight.w600,
+              color: isDarkMode ? Colors.white70 : Colors.grey[700],
             ),
           ),
         ],

@@ -1,57 +1,84 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationService {
+  static final FlutterLocalNotificationsPlugin
+      _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
   static final FirebaseMessaging _firebaseMessaging =
       FirebaseMessaging.instance;
 
   static Future<void> initialize() async {
+    // 🔹 Initialize local notifications
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initSettings =
+        InitializationSettings(android: androidSettings);
+
+    await _flutterLocalNotificationsPlugin.initialize(
+      settings: initSettings,
+    );
+
+    // 🔹 Request permission
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
-      announcement: false,
       badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
       sound: true,
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('Notification permission granted');
+      debugPrint('Notification permission granted');
 
-      // Get token
+      // 🔹 Get token
       String? token = await _firebaseMessaging.getToken();
-      print('FCM Token: $token');
+      debugPrint('FCM Token: $token');
 
-      // Handle foreground messages
+      // 🔹 Foreground messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        print('Received foreground message: ${message.notification?.title}');
+        debugPrint(
+            'Received foreground message: ${message.notification?.title}');
         _showNotification(message);
       });
 
-      // Handle background messages
+      // 🔹 When user clicks notification
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        print(
-            'Received message when app was open: ${message.notification?.title}');
+        debugPrint(
+            'App opened from notification: ${message.notification?.title}');
       });
     } else {
-      print('Notification permission denied');
+      debugPrint('Notification permission denied');
     }
   }
 
-  static void _showNotification(RemoteMessage message) {
-    // This would typically use a state management solution to show the notification
-    // For now, we'll just print to console as Flutter's notification handling
-    // depends on the platform
-    print(
-        'Notification: ${message.notification?.title} - ${message.notification?.body}');
+  static Future<void> _showNotification(RemoteMessage message) async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'channel_id',
+      'channel_name',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails notificationDetails =
+        NotificationDetails(android: androidDetails);
+
+    await _flutterLocalNotificationsPlugin.show(
+      id: 0,
+      title: message.notification?.title ?? "No title",
+      body: message.notification?.body ?? "No body",
+      notificationDetails: notificationDetails,
+    );
   }
 
   static Future<void> subscribeToTopic(String topic) async {
     await _firebaseMessaging.subscribeToTopic(topic);
+    debugPrint('Subscribed to topic: $topic');
   }
 
   static Future<void> unsubscribeFromTopic(String topic) async {
     await _firebaseMessaging.unsubscribeFromTopic(topic);
+    debugPrint('Unsubscribed from topic: $topic');
   }
 }
