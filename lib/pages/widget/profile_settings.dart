@@ -193,7 +193,7 @@ class ProfileSettings extends StatelessWidget {
       leading: const Icon(Icons.language, color: Color(0xFF336A29)),
       title: Text(getTranslation('language')),
       subtitle: Text(
-        getCurrentLanguage(), // 👈 تبان اللغة المختارة
+        getCurrentLanguage(), 
         style: TextStyle(
           color: isDarkMode ? Colors.white60 : Colors.grey,
         ),

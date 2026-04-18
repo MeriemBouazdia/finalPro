@@ -52,8 +52,12 @@ dependencies:
   uuid: ^4.0.0
   flutter_local_notifications: ^21.0.0
   permission_handler: ^11.0.0
-
+  google_sign_in: ^6.2.1 
   intl: ^0.20.2
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  flutter_svg: ^2.2.4
+  tflite_flutter: ^0.12.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -81,6 +85,11 @@ flutter:
   assets:
     - assets/register.png
     - assets/Login-amico.png
+    - assets/greenhouse.jpg
+    - assets/logo1.png
+    - assets/logo2.png
+    - assets/logo3.png
+    - assets/models/crop_recommendation_model.tflite
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

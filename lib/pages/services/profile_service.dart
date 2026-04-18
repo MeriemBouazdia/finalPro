@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 /// Model class representing user profile data
 class UserProfile {
@@ -99,24 +101,31 @@ class ProfileService {
     }
   }
 
-  /// Pick an image from the gallery
-  Future<File?> pickImage() async {
-    try {
-      final XFile? pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-        maxWidth: 800,
-        maxHeight: 800,
-      );
+ Future<File?> pickImage() async {
+  try {
+    
+    var status = await Permission.photos.request();
 
-      if (pickedFile != null) {
-        return File(pickedFile.path);
-      }
-    } catch (e) {
-      debugPrint('Error picking image: $e');
+    if (!status.isGranted) {
+      debugPrint("Permission denied");
+      return null;
     }
-    return null;
+
+    final XFile? pickedFile = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
+
+    if (pickedFile != null) {
+      return File(pickedFile.path);
+    }
+  } catch (e) {
+    debugPrint('Error picking image: $e');
   }
+  return null;
+}
 
   /// Upload profile image to Firebase Storage and update Firestore
   Future<String?> uploadProfileImage(

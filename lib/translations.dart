@@ -167,6 +167,17 @@ class Translations {
       'changePassword': 'Change Password',
       'home': 'Home',
 
+      // Onboarding
+      'onboardingWelcomeTitle': 'Welcome to Greenhouse App',
+      'onboardingWelcomeDesc': 'Monitor and control your smart greenhouse from anywhere with ease.',
+      'onboardingMonitorTitle': 'Real-time Monitoring',
+      'onboardingMonitorDesc': 'Track temperature, humidity, soil moisture, and light levels in real-time.',
+      'onboardingControlTitle': 'Smart Control',
+      'onboardingControlDesc': 'Control fans, pumps, lights, heaters, and sprinklers automatically or manually.',
+      'skip': 'Skip',
+      'next': 'Next',
+      'getStarted': 'Get Started',
+
       // General
       'error': 'Error',
       'success': 'Success',
@@ -272,8 +283,10 @@ class Translations {
       'lightDevice': 'Lumière',
       'heater': 'Chauffage',
       'sprinkler': 'Arroseur',
-      'automatic': 'Automatique',
-      'manual': 'Manuel',
+      'autoMode': 'Mode automatique',
+      'manualMode': 'Mode manuel',
+      'autoModeDesc': 'La serre est contrôlée automatiquement',
+      'manualModeDesc': 'Vous contrôlez les appareils manuellement',
       'on': 'ON',
       'off': 'OFF',
 
@@ -334,6 +347,17 @@ class Translations {
       'helpSupport': 'Aide et support',
       'changePassword': 'Changer le mot de passe',
       'home': 'Accueil',
+
+      // Onboarding
+      'onboardingWelcomeTitle': 'Bienvenue dans Greenhouse App',
+      'onboardingWelcomeDesc': 'Surveillez et contrôlez votre serre intelligente de n\'importe où en toute simplicité.',
+      'onboardingMonitorTitle': 'Surveillance en temps réel',
+      'onboardingMonitorDesc': 'Suivez la température, l\'humidité, l\'humidité du sol et les niveaux de lumière en temps réel.',
+      'onboardingControlTitle': 'Contrôle intelligent',
+      'onboardingControlDesc': 'Contrôlez les ventilateurs, pompes, lumières, chauffages et arroseurs automatiquement ou manuellement.',
+      'skip': 'Passer',
+      'next': 'Suivant',
+      'getStarted': 'Commencer',
 
       // General
       'error': 'Erreur',
@@ -500,6 +524,17 @@ class Translations {
       'helpSupport': 'المساعدة والدعم',
       'changePassword': 'تغيير كلمة المرور',
       'home': 'الرئيسية',
+
+      // Onboarding
+      'onboardingWelcomeTitle': 'مرحباً بك في تطبيق الدفيئة',
+      'onboardingWelcomeDesc': 'راقب والتحكم في دفيئتك الذكية من أي مكان بسهولة.',
+      'onboardingMonitorTitle': 'المراقبة الفورية',
+      'onboardingMonitorDesc': 'تتبع درجة الحرارة والرطوبة ورطوبة التربة ومستويات الإضاءة في الوقت الفعلي.',
+      'onboardingControlTitle': 'التحكم الذكي',
+      'onboardingControlDesc': 'التحكم في المراوح والمضخات والإضاءة والسخانات والراذعات تلقائياً أو يدوياً.',
+      'skip': 'تخطي',
+      'next': 'التالي',
+      'getStarted': 'ابدأ',
 
       // General
       'error': 'خطأ',

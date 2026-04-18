@@ -20,6 +20,7 @@ class DeviceControl extends StatefulWidget {
 class _DeviceControlState extends State<DeviceControl> {
   late DatabaseReference _actuatorsRef;
   StreamSubscription<DatabaseEvent>? _actuatorsSubscription;
+  StreamSubscription<DatabaseEvent>? _modeSubscription;
 
   final Map<String, bool> _deviceStates = {
     'pump': false,
@@ -27,7 +28,6 @@ class _DeviceControlState extends State<DeviceControl> {
     'fan': false,
     'vent': false,
   };
-
   bool _isLoading = true;
   String? _error;
 
@@ -48,7 +48,6 @@ class _DeviceControlState extends State<DeviceControl> {
       return;
     }
 
-    // Correct user-centric Firebase path: users/$uid/greenhouses/$ghId/actuators
     _actuatorsRef = FirebaseDatabase.instance
         .ref('users/${user.uid}/greenhouses/${widget.ghId}/actuators');
 
@@ -59,12 +58,14 @@ class _DeviceControlState extends State<DeviceControl> {
     _actuatorsSubscription = _actuatorsRef.onValue.listen(
       (DatabaseEvent event) {
         if (event.snapshot.value == null) {
-          // Initialize default values if no data exists
           _initializeDefaultValues();
           return;
         }
 
-        final data = event.snapshot.value as Map;
+        final raw = event.snapshot.value;
+        if (raw == null || raw is! Map) return;
+
+        final data = Map<String, dynamic>.from(raw);
         setState(() {
           _deviceStates['pump'] = data['pump'] == true;
           _deviceStates['light'] = data['light'] == true;
@@ -88,7 +89,6 @@ class _DeviceControlState extends State<DeviceControl> {
     if (user == null) return;
 
     try {
-      // Create default actuator states if they don't exist
       await _actuatorsRef.set({
         'pump': false,
         'light': false,
@@ -105,12 +105,10 @@ class _DeviceControlState extends State<DeviceControl> {
 
   Future<void> _updateDevice(String device, bool value) async {
     try {
-      // Optimistic update for immediate UI feedback
       setState(() {
         _deviceStates[device] = value;
       });
 
-      // Write to Firebase
       await _actuatorsRef.child(device).set(value);
     } catch (e) {
       // Revert on error
@@ -133,6 +131,7 @@ class _DeviceControlState extends State<DeviceControl> {
   @override
   void dispose() {
     _actuatorsSubscription?.cancel();
+    _modeSubscription?.cancel();
     super.dispose();
   }
 
@@ -187,6 +186,7 @@ class _DeviceControlState extends State<DeviceControl> {
               ],
             ),
           ),
+        const Divider(),
         SwitchListTile(
           title: Text(tr.get('pump')),
           subtitle: Text(
@@ -212,7 +212,7 @@ class _DeviceControlState extends State<DeviceControl> {
           secondary: const Icon(Icons.air),
         ),
         SwitchListTile(
-          title: Text(tr.get('heater')),
+          title: Text(tr.get('vent')),
           subtitle: Text(
               _deviceStates['vent'] == true ? tr.get('on') : tr.get('off')),
           value: _deviceStates['vent'] ?? false,

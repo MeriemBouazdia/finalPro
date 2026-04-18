@@ -38,8 +38,11 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
           .ref("users/${user.uid}/greenhouses/${widget.ghId}/targets");
       _loadExistingValues();
     } else {
-      _targetsRef =
-          FirebaseDatabase.instance.ref("greenhouses/${widget.ghId}/targets");
+      // User is not authenticated — navigate back immediately.
+      // This state should not be reachable if auth guards are in place.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).pop();
+      });
       _isLoading = false;
     }
   }

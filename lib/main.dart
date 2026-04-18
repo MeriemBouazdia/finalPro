@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'pages/widget/theme_provider.dart';
 import 'pages/widget/locale_provider.dart';
@@ -10,16 +11,23 @@ import 'translations.dart';
 import 'login.dart';
 import 'pages/register.dart';
 import 'pages/ghlist.dart';
+import 'wrapper.dart';
+import 'pages/onboarding.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(const GreenhouseApp());
+  final prefs = await SharedPreferences.getInstance();
+  final seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
+
+  runApp(GreenhouseApp(seenOnboarding: seenOnboarding));
 }
 
 class GreenhouseApp extends StatelessWidget {
-  const GreenhouseApp({super.key});
+  final bool seenOnboarding;
+
+  const GreenhouseApp({super.key, required this.seenOnboarding});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +50,6 @@ class GreenhouseApp extends StatelessWidget {
                     Locale('ar'),
                   ],
                   localizationsDelegates: const [
-                    Translations.delegate,
                     GlobalMaterialLocalizations.delegate,
                     GlobalWidgetsLocalizations.delegate,
                     GlobalCupertinoLocalizations.delegate,
@@ -58,11 +65,13 @@ class GreenhouseApp extends StatelessWidget {
                       },
                     );
                   },
-                  initialRoute: '/login',
+                  home:
+                      seenOnboarding ? const Login() : const OnboardingScreen(),
                   routes: {
                     '/login': (context) => const Login(),
                     '/main': (context) => const GHListPage(),
                     '/register': (context) => const Register(),
+                    '/wrapper': (context) => const Wrapper(),
                   },
                 );
               },

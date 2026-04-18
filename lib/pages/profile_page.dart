@@ -1,15 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
 import '../../translations.dart';
-import 'services/profile_service.dart';
+import 'services/profile_service.dart' hide debugPrint;
 import 'widget/profile_header.dart';
 import 'widget/profile_info.dart';
 import 'widget/profile_settings.dart';
 import 'widget/theme_provider.dart';
-import 'widget/locale_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -62,26 +62,35 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _fetchUserData() async {
-    final tr = Translations.of(context);
-    final defaultName = tr.get('noName');
+    try {
+      const defaultName = 'User';
 
-    final userProfile = await _profileService.fetchUserData(
-      defaultName,
-      _email,
-    );
+      final userProfile = await _profileService
+          .fetchUserData(
+            defaultName,
+            _email,
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
 
-    if (userProfile != null && mounted) {
-      setState(() {
-        _name = userProfile.name;
-        _email = userProfile.email;
-        _profileImageUrl = userProfile.profileImageUrl;
-        _cacheBuster = userProfile.cacheBuster;
-        _isLoading = false;
-        _nameController.text = _name;
-        _emailController.text = _email;
-      });
-    } else if (mounted) {
-      setState(() => _isLoading = false);
+      if (userProfile != null && mounted) {
+        setState(() {
+          _name = userProfile.name;
+          _email = userProfile.email;
+          _profileImageUrl = userProfile.profileImageUrl;
+          _cacheBuster = userProfile.cacheBuster;
+          _nameController.text = _name;
+          _emailController.text = _email;
+        });
+      }
+    } catch (e) {
+      debugPrint('fetchUserData error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

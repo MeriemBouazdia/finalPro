@@ -93,10 +93,9 @@ class HomePage extends StatelessWidget {
           final data =
               Map<String, dynamic>.from(snapshot.data!.snapshot.value as Map);
 
-          double temp = _parseDouble(data['temp']?['value']);
+          double temp = _parseDouble(data['temperature']?['value']);
           double humidity = _parseDouble(data['humidity']?['value']);
-          double soil =
-              _parseDouble(data['soil_moisture']?['sensor1']?['value']);
+          double soil = _parseDouble(data['soil']?['value'] ?? 0);
           double light = _parseDouble(data['light']?['value']);
 
           return Padding(
