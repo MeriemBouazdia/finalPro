@@ -1,9 +1,97 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'main_screen.dart';
-import '../../translations.dart';
+import 'package:app/l10n/translations.dart';
+import '../pages/widget/theme_provider.dart';
 
+class _GHColors {
+  final bool isDark;
+  const _GHColors(this.isDark);
+
+  // Backgrounds mirrors HomePage palette
+  Color get scaffold =>
+      isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5);
+  Color get card => isDark ? const Color(0xFF2C2C2C) : Colors.white;
+  Color get cardAlt =>
+      isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF1F8F1);
+  Color get surface =>
+      isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5);
+  Color get dialog => isDark ? const Color(0xFF2C2C2C) : Colors.white;
+
+  // Borders
+  Color get border => isDark
+      ? const Color(0xFF3A3A3A)
+      : const Color(0xFF336A29).withOpacity(0.18);
+  Color get borderSubtle =>
+      isDark ? const Color(0xFF3A3A3A) : const Color(0xFFDDE8DC);
+
+  // Text
+  Color get textPrimary => isDark ? Colors.white : const Color(0xFF1B2D1A);
+  Color get textSecondary => isDark ? Colors.white70 : const Color(0xFF336A29);
+  Color get textMuted => isDark ? Colors.white54 : Colors.grey.shade500;
+  Color get textHint => isDark ? Colors.white30 : Colors.grey.shade400;
+
+  // Brand greens — mirrors HomePage primary
+  Color get primary => const Color(0xFF336A29);
+  Color get primaryLight => isDark ? Colors.white70 : const Color(0xFF388E3C);
+  Color get accent => const Color(0xFF43A047);
+  Color get iconBg => isDark
+      ? const Color(0xFF336A29).withOpacity(0.30)
+      : const Color(0xFF336A29).withOpacity(0.08);
+  Color get fab1 => const Color(0xFF336A29);
+  Color get fab2 => const Color(0xFF43A047);
+
+  // Shadows
+  Color get shadow => isDark
+      ? Colors.black.withOpacity(0.45)
+      : const Color(0xFF336A29).withOpacity(0.08);
+  Color get headerShadow => const Color(0xFF336A29).withOpacity(0.27);
+
+  // Orbs
+  Color get orb1 => isDark
+      ? const Color(0xFF336A29).withOpacity(0.18)
+      : const Color(0xFF336A29).withOpacity(0.10);
+  Color get orb2 => isDark
+      ? const Color(0xFF1E1E1E).withOpacity(0.60)
+      : const Color(0xFF81C784).withOpacity(0.10);
+
+  // Danger
+  Color get danger => const Color(0xFFE53935);
+  Color get dangerSurface =>
+      isDark ? const Color(0xFF3B1111) : const Color(0xFFFFEBEE);
+
+  // Input field
+  Color get inputFill =>
+      isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5);
+  Color get inputBorder =>
+      isDark ? const Color(0xFF3A3A3A) : const Color(0xFFDDE8DC);
+  Color get inputFocused => const Color(0xFF336A29);
+  Color get inputLabel => isDark ? Colors.white70 : const Color(0xFF336A29);
+}
+
+//Animated page route matches project transitions
+PageRoute<T> _fadeSlideRoute<T>({required WidgetBuilder builder}) {
+  return PageRouteBuilder<T>(
+    pageBuilder: (context, animation, secondaryAnimation) => builder(context),
+    transitionDuration: const Duration(milliseconds: 380),
+    reverseTransitionDuration: const Duration(milliseconds: 280),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+      final slide = Tween<Offset>(
+        begin: const Offset(0.04, 0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+      return FadeTransition(
+        opacity: fade,
+        child: SlideTransition(position: slide, child: child),
+      );
+    },
+  );
+}
+
+//Page
 class GHListPage extends StatelessWidget {
   const GHListPage({super.key});
 
@@ -11,11 +99,19 @@ class GHListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final tr = Translations.of(context);
     final isRtl = tr.isRtl;
+    final isDark = context.watch<ThemeProvider>().isDarkMode;
+    final c = _GHColors(isDark);
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
       return Scaffold(
-        body: Center(child: Text(tr.get('pleaseLoginFirst'))),
+        backgroundColor: c.scaffold,
+        body: Center(
+          child: Text(
+            tr.get('pleaseLoginFirst'),
+            style: TextStyle(color: c.textPrimary),
+          ),
+        ),
       );
     }
 
@@ -23,75 +119,109 @@ class GHListPage extends StatelessWidget {
         FirebaseDatabase.instance.ref("users/${user.uid}/greenhouses");
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F7F2),
+      backgroundColor: c.scaffold,
       body: Stack(
         children: [
-        
+          // ── Decorative orbs ──
           Positioned(
             top: -60,
             right: -60,
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF4CAF50).withOpacity(0.12),
-              ),
-            ),
+            child: _OrbDecoration(size: 220, color: c.orb1),
           ),
           Positioned(
             top: 80,
             left: -40,
-            child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF81C784).withOpacity(0.10),
-              ),
-            ),
+            child: _OrbDecoration(size: 140, color: c.orb2),
           ),
+          Positioned(
+            bottom: -80,
+            right: -30,
+            child: _OrbDecoration(size: 180, color: c.orb2),
+          ),
+
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(context, tr, ghRef),
+                _Header(c: c, tr: tr, ghRef: ghRef, isDark: isDark),
                 Expanded(
-                  child: _buildGreenhouseList(context, ghRef, tr, isRtl),
+                  child: _GreenhouseList(
+                    ghRef: ghRef,
+                    tr: tr,
+                    isRtl: isRtl,
+                    c: c,
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-
-      // ── Floating Action Button ────────────────────────────────────────
       floatingActionButton: _ModernFAB(
-        onPressed: () => _showCreateGreenhouseDialog(context, ghRef, tr),
+        c: c,
+        onPressed: () => _showCreateGreenhouseDialog(context, ghRef, tr, c),
       ),
     );
   }
+}
 
-  // ── Header ────────────────────────────────────────────────────────────
-  Widget _buildHeader(
-      BuildContext context, Translations tr, DatabaseReference ghRef) {
+//Orb decoration
+class _OrbDecoration extends StatelessWidget {
+  final double size;
+  final Color color;
+  const _OrbDecoration({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+    );
+  }
+}
+
+//Header
+class _Header extends StatelessWidget {
+  final _GHColors c;
+  final Translations tr;
+  final DatabaseReference ghRef;
+  final bool isDark;
+  const _Header({
+    required this.c,
+    required this.tr,
+    required this.ghRef,
+    required this.isDark,
+  });
+
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF1B5E20), Color(0xFF388E3C)],
+          colors: isDark
+              ? [const Color(0xFF1E1E1E), const Color(0xFF2C2C2C)]
+              : [const Color(0xFF336A29), const Color(0xFF388E3C)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x441B5E20),
+            color: c.headerShadow,
             blurRadius: 24,
-            offset: Offset(0, 8),
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -100,6 +230,7 @@ class GHListPage extends StatelessWidget {
         children: [
           Row(
             children: [
+              // Logo chip
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -110,27 +241,36 @@ class GHListPage extends StatelessWidget {
                     color: Colors.white, size: 22),
               ),
               const Spacer(),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.wb_sunny_rounded,
-                        color: Colors.white70, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      _getGreeting(),
-                      style: const TextStyle(
+              // Theme toggle pill
+              GestureDetector(
+                onTap: () => context.read<ThemeProvider>().toggleDarkMode(),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isDark
+                            ? Icons.dark_mode_rounded
+                            : Icons.wb_sunny_rounded,
                         color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        size: 14,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Text(
+                        _greeting(),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -159,24 +299,31 @@ class GHListPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
+//Greenhouse list
+class _GreenhouseList extends StatelessWidget {
+  final DatabaseReference ghRef;
+  final Translations tr;
+  final bool isRtl;
+  final _GHColors c;
 
-  // ── List ──────────────────────────────────────────────────────────────
-  Widget _buildGreenhouseList(BuildContext context, DatabaseReference ghRef,
-      Translations tr, bool isRtl) {
+  const _GreenhouseList({
+    required this.ghRef,
+    required this.tr,
+    required this.isRtl,
+    required this.c,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return StreamBuilder<DatabaseEvent>(
       stream: ghRef.onValue,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(
-              color: Color(0xFF388E3C),
+              color: c.primaryLight,
               strokeWidth: 2.5,
             ),
           );
@@ -185,7 +332,8 @@ class GHListPage extends StatelessWidget {
         if (!snapshot.hasData || snapshot.data?.snapshot.value == null) {
           return _EmptyState(
             tr: tr,
-            onAdd: () => _showCreateGreenhouseDialog(context, ghRef, tr),
+            c: c,
+            onAdd: () => _showCreateGreenhouseDialog(context, ghRef, tr, c),
           );
         }
 
@@ -207,7 +355,7 @@ class GHListPage extends StatelessWidget {
               child: Dismissible(
                 key: Key(ghId),
                 direction: DismissDirection.endToStart,
-                confirmDismiss: (_) => _confirmDelete(context, name, tr),
+                confirmDismiss: (_) => _confirmDelete(context, name, tr, c),
                 onDismissed: (_) async {
                   await ghRef.child(ghId).remove();
                   if (context.mounted) {
@@ -240,14 +388,13 @@ class GHListPage extends StatelessWidget {
                   name: name,
                   plant: plant,
                   isRtl: isRtl,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MainScreen(ghId: ghId),
-                      ),
-                    );
-                  },
+                  c: c,
+                  onTap: () => Navigator.push(
+                    context,
+                    _fadeSlideRoute(
+                      builder: (_) => MainScreen(ghId: ghId),
+                    ),
+                  ),
                 ),
               ),
             );
@@ -256,284 +403,31 @@ class GHListPage extends StatelessWidget {
       },
     );
   }
-  //confirme delete
-  Future<bool?> _confirmDelete(
-      BuildContext context, String name, Translations tr) {
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFEBEE),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.delete_outline_rounded,
-                    color: Color(0xFFE53935), size: 30),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                tr.get('deleteGreenhouse'),
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1B2D1A),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '"$name"',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF388E3C),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                tr.get('deleteGreenhouseConfirm'),
-                style: TextStyle(
-                    fontSize: 13.5, color: Colors.grey.shade500, height: 1.4),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          side: const BorderSide(
-                              color: Color(0xFFDDE8DC), width: 1.5),
-                        ),
-                      ),
-                      child: Text(
-                        tr.get('cancel'),
-                        style: const TextStyle(
-                            color: Color(0xFF4E6B4C),
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE53935),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14)),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        tr.get('delete'),
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  void _showCreateGreenhouseDialog(
-      BuildContext context, DatabaseReference ghRef, Translations tr) {
-    final nameController = TextEditingController();
-    final plantController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Dialog header
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1B5E20).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(Icons.add_circle_outline_rounded,
-                        color: Color(0xFF1B5E20), size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      tr.get('addNewGreenhouse'),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1B2D1A),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Form(
-                key: formKey,
-                child: Column(
-                  children: [
-                    _ModernTextField(
-                      controller: nameController,
-                      label: tr.get('greenhouseName'),
-                      hint: tr.get('greenhouseNameHint'),
-                      icon: Icons.local_florist_rounded,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return tr.get('enterName');
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                    _ModernTextField(
-                      controller: plantController,
-                      label: tr.get('plantType'),
-                      hint: tr.get('plantTypeHint'),
-                      icon: Icons.grass_rounded,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          side: const BorderSide(
-                              color: Color(0xFFDDE8DC), width: 1.5),
-                        ),
-                      ),
-                      child: Text(
-                        tr.get('cancel'),
-                        style: const TextStyle(
-                            color: Color(0xFF4E6B4C),
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (formKey.currentState!.validate()) {
-                          final newGhRef = ghRef.push();
-                          final newGhId = newGhRef.key;
-
-                          await newGhRef.set({
-                            "name": nameController.text.trim(),
-                            "plant": plantController.text.trim(),
-                            "createdAt": DateTime.now().toIso8601String(),
-                          });
-                          await newGhRef.child("targets").set({
-                            "temperature": {"min": 18, "max": 30},
-                            "humidity":    {"min": 40, "max": 80},
-                            "soil":        {"min": 30, "max": 70},
-                            "light":       {"min": 100, "max": 1000},
-                          });
-
-                          await newGhRef.child("actuators").set({
-                            "pump":  false,
-                            "light": false,
-                            "fan":   false,
-                            "vent":  false,
-                          });
-
-
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    MainScreen(ghId: newGhId!),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1B5E20),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        tr.get('create'),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 15),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
-// ── Greenhouse Card ───────────────────────────────────────────────────────
+// Greenhouse card
 class _GreenhouseCard extends StatelessWidget {
   final String name;
   final String plant;
   final bool isRtl;
+  final _GHColors c;
   final VoidCallback onTap;
 
   const _GreenhouseCard({
     required this.name,
     required this.plant,
     required this.isRtl,
+    required this.c,
     required this.onTap,
   });
 
-  // Pick a subtle gradient per card based on name hash
   List<Color> get _cardGradient {
-    final gradients = [
-      [const Color(0xFFE8F5E9), const Color(0xFFF1F8F1)],
-      [const Color(0xFFE3F2E4), const Color(0xFFF5FAF5)],
-      [const Color(0xFFEDF7EE), const Color(0xFFF8FBF8)],
+    final g = [
+      [c.cardAlt, c.card],
+      [c.card, c.cardAlt],
+      [c.cardAlt, c.surface],
     ];
-    return gradients[name.length % gradients.length];
+    return g[name.length % g.length];
   }
 
   @override
@@ -549,13 +443,10 @@ class _GreenhouseCard extends StatelessWidget {
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: const Color(0xFF81C784).withOpacity(0.25),
-            width: 1.5,
-          ),
+          border: Border.all(color: c.border, width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF2E7D32).withOpacity(0.08),
+              color: c.shadow,
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -596,10 +487,10 @@ class _GreenhouseCard extends StatelessWidget {
                   children: [
                     Text(
                       name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1B2D1A),
+                        color: c.textPrimary,
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -607,14 +498,14 @@ class _GreenhouseCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.grass_rounded,
-                              size: 13, color: Color(0xFF558B2F)),
+                          Icon(Icons.grass_rounded,
+                              size: 13, color: c.textSecondary),
                           const SizedBox(width: 4),
                           Text(
                             plant,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12.5,
-                              color: Color(0xFF558B2F),
+                              color: c.textSecondary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -630,7 +521,7 @@ class _GreenhouseCard extends StatelessWidget {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2E7D32).withOpacity(0.08),
+                  color: c.iconBg,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -638,7 +529,7 @@ class _GreenhouseCard extends StatelessWidget {
                       ? Icons.arrow_back_ios_new_rounded
                       : Icons.arrow_forward_ios_rounded,
                   size: 15,
-                  color: const Color(0xFF2E7D32),
+                  color: c.primaryLight,
                 ),
               ),
             ],
@@ -649,11 +540,277 @@ class _GreenhouseCard extends StatelessWidget {
   }
 }
 
-// ── Animated Card wrapper ─────────────────────────────────────────────────
+// Confirm delete dialog
+Future<bool?> _confirmDelete(
+  BuildContext context,
+  String name,
+  Translations tr,
+  _GHColors c,
+) {
+  return showDialog<bool>(
+    context: context,
+    builder: (ctx) => Dialog(
+      backgroundColor: c.dialog,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: c.dangerSurface,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.delete_outline_rounded,
+                  color: Color(0xFFE53935), size: 30),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              tr.get('deleteGreenhouse'),
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: c.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '"$name"',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: c.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              tr.get('deleteGreenhouseConfirm'),
+              style: TextStyle(
+                fontSize: 13.5,
+                color: c.textMuted,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(color: c.borderSubtle, width: 1.5),
+                      ),
+                    ),
+                    child: Text(
+                      tr.get('cancel'),
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c.danger,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      tr.get('delete'),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+//Create greenhouse dialog
+void _showCreateGreenhouseDialog(
+  BuildContext context,
+  DatabaseReference ghRef,
+  Translations tr,
+  _GHColors c,
+) {
+  final nameController = TextEditingController();
+  final plantController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
+  showDialog(
+    context: context,
+    builder: (context) => Dialog(
+      backgroundColor: c.dialog,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dialog header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: c.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(Icons.add_circle_outline_rounded,
+                      color: c.primary, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    tr.get('addNewGreenhouse'),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: c.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  _ModernTextField(
+                    controller: nameController,
+                    label: tr.get('greenhouseName'),
+                    hint: tr.get('greenhouseNameHint'),
+                    icon: Icons.local_florist_rounded,
+                    c: c,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return tr.get('enterName');
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  _ModernTextField(
+                    controller: plantController,
+                    label: tr.get('plantType'),
+                    hint: tr.get('plantTypeHint'),
+                    icon: Icons.grass_rounded,
+                    c: c,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(color: c.borderSubtle, width: 1.5),
+                      ),
+                    ),
+                    child: Text(
+                      tr.get('cancel'),
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (formKey.currentState!.validate()) {
+                        final newGhRef = ghRef.push();
+                        final newGhId = newGhRef.key;
+
+                        await newGhRef.set({
+                          "name": nameController.text.trim(),
+                          "plant": plantController.text.trim(),
+                          "createdAt": DateTime.now().toIso8601String(),
+                        });
+                        await newGhRef.child("targets").set({
+                          "temperature": {"min": 18, "max": 30},
+                          "humidity": {"min": 40, "max": 80},
+                          "soil": {"min": 30, "max": 70},
+                          "light": {"min": 100, "max": 1000},
+                        });
+                        await newGhRef.child("actuators").set({
+                          "pump": false,
+                          "light": false,
+                          "fan": false,
+                          "vent": false,
+                        });
+
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            _fadeSlideRoute(
+                              builder: (_) => MainScreen(ghId: newGhId!),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      tr.get('create'),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 class _AnimatedCard extends StatefulWidget {
   final int index;
   final Widget child;
-
   const _AnimatedCard({required this.index, required this.child});
 
   @override
@@ -699,12 +856,16 @@ class _AnimatedCardState extends State<_AnimatedCard>
   }
 }
 
-// ── Empty State ───────────────────────────────────────────────────────────
 class _EmptyState extends StatelessWidget {
   final Translations tr;
+  final _GHColors c;
   final VoidCallback onAdd;
 
-  const _EmptyState({required this.tr, required this.onAdd});
+  const _EmptyState({
+    required this.tr,
+    required this.c,
+    required this.onAdd,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -718,37 +879,37 @@ class _EmptyState extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+                gradient: LinearGradient(
+                  colors: [c.cardAlt, c.card],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
+                border: Border.all(color: c.border, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF81C784).withOpacity(0.30),
+                    color: c.shadow,
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
                 ],
               ),
-              child: const Icon(Icons.eco_rounded,
-                  size: 46, color: Color(0xFF388E3C)),
+              child: Icon(Icons.eco_rounded, size: 46, color: c.primaryLight),
             ),
             const SizedBox(height: 24),
             Text(
               tr.get('noGreenhousesYet'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF2E3D2C),
+                color: c.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'Start by adding your first greenhouse.',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: 14, color: c.textMuted),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -757,7 +918,7 @@ class _EmptyState extends StatelessWidget {
               icon: const Icon(Icons.add_rounded),
               label: Text(tr.get('addGreenhouse')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B5E20),
+                backgroundColor: c.primary,
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
@@ -773,10 +934,10 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ── Modern FAB ────────────────────────────────────────────────────────────
 class _ModernFAB extends StatefulWidget {
   final VoidCallback onPressed;
-  const _ModernFAB({required this.onPressed});
+  final _GHColors c;
+  const _ModernFAB({required this.onPressed, required this.c});
 
   @override
   State<_ModernFAB> createState() => _ModernFABState();
@@ -817,15 +978,15 @@ class _ModernFABState extends State<_ModernFAB>
           width: 58,
           height: 58,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1B5E20), Color(0xFF43A047)],
+            gradient: LinearGradient(
+              colors: [widget.c.fab1, widget.c.fab2],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1B5E20).withOpacity(0.40),
+                color: widget.c.primary.withOpacity(0.40),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
@@ -838,12 +999,12 @@ class _ModernFABState extends State<_ModernFAB>
   }
 }
 
-// ── Modern TextField ──────────────────────────────────────────────────────
 class _ModernTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final String hint;
   final IconData icon;
+  final _GHColors c;
   final String? Function(String?)? validator;
 
   const _ModernTextField({
@@ -851,6 +1012,7 @@ class _ModernTextField extends StatelessWidget {
     required this.label,
     required this.hint,
     required this.icon,
+    required this.c,
     this.validator,
   });
 
@@ -859,19 +1021,19 @@ class _ModernTextField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       validator: validator,
-      style: const TextStyle(
-          fontSize: 14.5,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF1B2D1A)),
+      style: TextStyle(
+        fontSize: 14.5,
+        fontWeight: FontWeight.w500,
+        color: c.textPrimary,
+      ),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: Icon(icon, color: const Color(0xFF4CAF50), size: 20),
-        labelStyle: const TextStyle(
-            color: Color(0xFF558B2F), fontWeight: FontWeight.w500),
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+        prefixIcon: Icon(icon, color: c.accent, size: 20),
+        labelStyle: TextStyle(color: c.inputLabel, fontWeight: FontWeight.w500),
+        hintStyle: TextStyle(color: c.textHint, fontSize: 13),
         filled: true,
-        fillColor: const Color(0xFFF3F7F2),
+        fillColor: c.inputFill,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
@@ -880,11 +1042,11 @@ class _ModernTextField extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFDDE8DC), width: 1.5),
+          borderSide: BorderSide(color: c.inputBorder, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+          borderSide: BorderSide(color: c.inputFocused, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -899,25 +1061,24 @@ class _ModernTextField extends StatelessWidget {
   }
 }
 
-// ── Delete Swipe Background ───────────────────────────────────────────────
 class _DeleteBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
           colors: [Color(0xFFEF9A9A), Color(0xFFE53935)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.all(Radius.circular(22)),
       ),
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.only(right: 24),
-      child: Column(
+      child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Icon(Icons.delete_outline_rounded, color: Colors.white, size: 26),
           SizedBox(height: 4),
           Text(

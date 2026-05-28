@@ -4,12 +4,14 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
-import '../../translations.dart';
-import 'services/profile_service.dart' hide debugPrint;
+import 'package:app/l10n/translations.dart';
+import '../services/profile_service.dart' hide debugPrint;
 import 'widget/profile_header.dart';
 import 'widget/profile_info.dart';
 import 'widget/profile_settings.dart';
 import 'widget/theme_provider.dart';
+import 'passwordChange.dart';
+import 'help_support_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -190,16 +192,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _handleChangePassword() {
-    final tr = Translations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(tr.get('changePassword'))),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ChangePasswordPage(),
+      ),
     );
   }
 
   void _handleHelp() {
-    final tr = Translations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(tr.get('helpSupport'))),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const HelpSupportPage(),
+      ),
     );
   }
 

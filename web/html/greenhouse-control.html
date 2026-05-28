@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenAdmin — Greenhouse Control</title>
+  <link rel="icon" href="logo.png" type="image/png">
+
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sidebar.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/cards.css">
+  <link rel="stylesheet" href="../css/buttons.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/greenhouse-control.css">
+
+  <style>
+
+    #selector-screen {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Search / filter bar */
+    .gh-search-bar {
+      position: relative;
+    }
+    .gh-search-bar input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.65rem 0.9rem 0.65rem 2.5rem;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 10px;
+      font-size: 13.5px;
+      color: var(--text, #111);
+      background: var(--surface, #fff);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .gh-search-bar input:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.12);
+    }
+    .gh-search-bar svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      stroke: var(--text3, #9ca3af);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+
+    /* Card grid */
+    .gh-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    /* Individual picker card */
+    .gh-picker-card {
+      background: var(--surface, #fff);
+      border: 1.5px solid var(--border, #e5e7eb);
+      border-radius: 14px;
+      padding: 1.25rem 1.25rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.18s, box-shadow 0.18s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .gh-picker-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(22,163,74,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .gh-picker-card:hover {
+      border-color: #16a34a;
+      box-shadow: 0 4px 20px rgba(22,163,74,0.14);
+      transform: translateY(-2px);
+    }
+    .gh-picker-card:active {
+      transform: translateY(0);
+    }
+
+    .gh-picker-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #16a34a, #4ade80);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-bottom: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .gh-picker-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text, #111);
+      margin-bottom: 0.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gh-picker-meta {
+      font-size: 12px;
+      color: var(--text3, #9ca3af);
+      margin-bottom: 0.6rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gh-picker-owner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 11px;
+      font-weight: 600;
+      color: #16a34a;
+      background: rgba(22,163,74,0.08);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+    }
+    .gh-picker-owner svg {
+      width: 11px;
+      height: 11px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .gh-picker-arrow {
+      position: absolute;
+      top: 1.1rem;
+      right: 1.1rem;
+      width: 20px;
+      height: 20px;
+      background: var(--surface2, #f9fafb);
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .gh-picker-card:hover .gh-picker-arrow {
+      background: #16a34a;
+      border-color: #16a34a;
+    }
+    .gh-picker-arrow svg {
+      width: 11px;
+      height: 11px;
+      stroke: var(--text3, #9ca3af);
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke 0.15s;
+    }
+    .gh-picker-card:hover .gh-picker-arrow svg {
+      stroke: #fff;
+    }
+
+    /* Empty / loading states */
+    .gh-picker-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text3, #9ca3af);
+      font-size: 13px;
+    }
+    .gh-picker-empty .gh-picker-empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .gh-picker-skeleton {
+      height: 120px;
+      background: linear-gradient(90deg, var(--border,#e5e7eb) 25%, var(--surface2,#f9fafb) 50%, var(--border,#e5e7eb) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 14px;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Back button shown in control view ── */
+    #back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2, #374151);
+      background: var(--surface, #fff);
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 7px;
+      padding: 0.4rem 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      margin-bottom: 1rem;
+    }
+    #back-btn:hover {
+      background: var(--surface2, #f9fafb);
+      border-color: #16a34a;
+      color: #16a34a;
+    }
+    #back-btn svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ── Breadcrumb strip in control view ── */
+    .gh-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 12px;
+      color: var(--text3, #9ca3af);
+      margin-bottom: 0.25rem;
+    }
+    .gh-breadcrumb span { color: var(--text2, #374151); font-weight: 600; }
+
+    /* ── Control screen hidden by default ── */
+    #control-screen { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+    <div id="header"></div>
+
+    <div class="layout">
+      <div id="sidebar"></div>
+
+      <main class="main-content">
+
+        <!-- ═══════════════════════════════════════════
+             SCREEN 1 — GREENHOUSE SELECTOR
+        ═══════════════════════════════════════════ -->
+        <div id="selector-screen">
+
+          <div class="page-header">
+            <h1>Greenhouse Control</h1>
+            <p>Select a greenhouse to monitor and control</p>
+          </div>
+
+          <!-- Search -->
+          <div class="gh-search-bar">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="gh-search" placeholder="Search greenhouses or users…">
+          </div>
+
+          <!-- Card grid populated by JS -->
+          <div class="gh-picker-grid" id="picker-grid">
+            <!-- skeletons while loading -->
+            <div class="gh-picker-skeleton"></div>
+            <div class="gh-picker-skeleton"></div>
+            <div class="gh-picker-skeleton"></div>
+          </div>
+
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             SCREEN 2 — CONTROL PANEL (hidden until selection)
+        ═══════════════════════════════════════════ -->
+        <div id="control-screen">
+
+          <!-- Back + breadcrumb -->
+          <button id="back-btn" type="button">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Greenhouses
+          </button>
+
+          <div class="gh-breadcrumb">
+            Greenhouse Control
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <span id="breadcrumb-name">—</span>
+          </div>
+
+          <!-- PAGE HEADER -->
+          <div class="page-header">
+            <h1 id="gh-title">Greenhouse Control</h1>
+            <p id="gh-subtitle">Real-time monitoring and control</p>
+          </div>
+
+          <!-- CONNECTION STATUS -->
+          <div id="connection-alert" class="alert alert-info" style="display:none;">
+            <span class="alert-icon">ℹ️</span>
+            <span id="connection-text">Connecting to Firebase...</span>
+          </div>
+
+          <!-- AUTO MODE ALERT -->
+          <div id="auto-mode-alert" class="alert alert-info" style="display:none;">
+            <span class="alert-icon">⚙️</span>
+            <span>System is controlling automatically. Switch to MANUAL mode to adjust devices.</span>
+          </div>
+
+          <!-- SECTION 1: SENSORS -->
+          <section class="gh-section">
+            <div class="gh-section-header">
+              <h2 class="gh-section-title">
+                <span class="gh-section-icon">📊</span>
+                Live Sensor Data
+              </h2>
+            </div>
+            <div class="gh-sensors-grid" id="sensors-container"></div>
+          </section>
+
+          <!-- SECTION 2: ACTUATORS -->
+          <section class="gh-section">
+            <div class="gh-section-header">
+              <h2 class="gh-section-title">
+                <span class="gh-section-icon">⚙️</span>
+                Device Controls
+              </h2>
+            </div>
+
+            <div class="gh-actuators-grid">
+              <!-- MODE SWITCH -->
+              <div class="gh-control-card">
+                <div class="gh-control-header">
+                  <div class="gh-control-title"><span class="gh-control-icon">🔄</span>Control Mode</div>
+                </div>
+                <div class="gh-mode-switch" id="mode-switch">
+                  <button class="gh-mode-option active" data-mode="auto">AUTO</button>
+                  <button class="gh-mode-option" data-mode="manual">MANUAL</button>
+                </div>
+                <p class="gh-control-hint">Auto: System controls automatically<br>Manual: You control devices</p>
+              </div>
+
+              <!-- PUMP -->
+              <div class="gh-control-card">
+                <div class="gh-control-header">
+                  <div class="gh-control-title"><span class="gh-control-icon">💧</span>Pump</div>
+                </div>
+                <div class="gh-control-group">
+                  <div class="gh-control-item">
+                    <span class="gh-control-label">Water System</span>
+                    <button class="gh-toggle-switch" id="pump-toggle" data-device="pump" aria-label="Toggle water pump"></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FAN -->
+              <div class="gh-control-card">
+                <div class="gh-control-header">
+                  <div class="gh-control-title"><span class="gh-control-icon">💨</span>Fan</div>
+                </div>
+                <div class="gh-control-group">
+                  <div class="gh-control-item">
+                    <span class="gh-control-label">Circulation Fan</span>
+                    <button class="gh-toggle-switch" id="fan-toggle" data-device="fan" aria-label="Toggle fan"></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LIGHT -->
+              <div class="gh-control-card">
+                <div class="gh-control-header">
+                  <div class="gh-control-title"><span class="gh-control-icon">💡</span>Grow Light</div>
+                </div>
+                <div class="gh-control-group">
+                  <div class="gh-control-item">
+                    <span class="gh-control-label">LED Array</span>
+                    <button class="gh-toggle-switch" id="light-toggle" data-device="light" aria-label="Toggle light"></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- VENT -->
+              <div class="gh-control-card">
+                <div class="gh-control-header">
+                  <div class="gh-control-title"><span class="gh-control-icon">🌬️</span>Vent</div>
+                </div>
+                <div class="gh-control-group">
+                  <div class="gh-control-item">
+                    <span class="gh-control-label">Ventilation Vent</span>
+                    <button class="gh-toggle-switch" id="vent-toggle" data-device="vent" aria-label="Toggle vent"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECTION 3: TARGETS -->
+          <section class="gh-section">
+            <div class="gh-section-header">
+              <h2 class="gh-section-title">
+                <span class="gh-section-icon">🎯</span>
+                Setpoints & Targets
+              </h2>
+            </div>
+            <div class="gh-targets-grid">
+              <div class="gh-target-card">
+                <label class="gh-target-label">Target Temperature</label>
+                <div class="gh-target-input-group">
+                  <input type="number" class="gh-target-input gh-with-unit" id="target-temp" placeholder="22" min="10" max="35" step="0.5">
+                  <span class="gh-target-unit">°C</span>
+                </div>
+                <div class="gh-button-group">
+                  <button class="btn-primary gh-btn-target" onclick="saveTarget('temperature')">Save</button>
+                  <button class="btn-secondary gh-btn-target" onclick="resetTarget('temperature')">Reset</button>
+                </div>
+              </div>
+              <div class="gh-target-card">
+                <label class="gh-target-label">Target Soil Moisture</label>
+                <div class="gh-target-input-group">
+                  <input type="number" class="gh-target-input gh-with-unit" id="target-soil" placeholder="60" min="20" max="80" step="1">
+                  <span class="gh-target-unit">%</span>
+                </div>
+                <div class="gh-button-group">
+                  <button class="btn-primary gh-btn-target" onclick="saveTarget('soil')">Save</button>
+                  <button class="btn-secondary gh-btn-target" onclick="resetTarget('soil')">Reset</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECTION 4: HISTORY -->
+          <section class="gh-section">
+            <div class="gh-section-header">
+              <h2 class="gh-section-title">
+                <span class="gh-section-icon">📈</span>
+                24-Hour History
+              </h2>
+            </div>
+            <div class="gh-chart-container">
+              <div class="gh-chart-title">Temperature & Humidity Trend</div>
+              <div class="gh-chart-wrapper">
+                <canvas id="history-chart"></canvas>
+              </div>
+            </div>
+          </section>
+
+        </div><!-- /control-screen -->
+
+      </main>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+  <script type="module">
+    import { initDashboard } from "../js/main.js";
+    await initDashboard(".");
+  </script>
+
+  <script type="module" src="../js/GreenhouseControl.js"></script>
+
+</body>
+</html>

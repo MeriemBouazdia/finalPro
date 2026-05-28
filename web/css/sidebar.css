@@ -1,0 +1,352 @@
+/* ─────────────────────────────────────────────────────────────
+   SIDEBAR — Rich Forest Green Navigation
+   ───────────────────────────────────────────────────────────── */
+
+.sidebar {
+  width: var(--sidebar-w);
+  height: 100%;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  z-index: 100;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+
+  /* Subtle inner texture */
+  background-image:
+    radial-gradient(ellipse at top left, rgba(74, 222, 128, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(22, 163, 74, 0.05) 0%, transparent 55%);
+}
+
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
+
+/* Right edge glow line */
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(134, 239, 172, 0.15) 30%,
+    rgba(134, 239, 172, 0.08) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Collapsed state on desktop */
+.sidebar.collapsed { 
+  width: var(--sidebar-col); 
+}
+
+/* Hide overlay by default */
+.sidebar-overlay {
+  display: none;
+}
+
+/* ─── Brand / Header ──────────────────────────────────────── */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  height: 60px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.sidebar-brand-logo {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, rgba(134, 239, 172, 0.18), rgba(74, 222, 128, 0.1));
+  border-radius: 10px;
+  border: 1px solid rgba(134, 239, 172, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #86efac;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: all 0.2s ease;
+}
+
+.sidebar-brand-logo:hover {
+  background: linear-gradient(135deg, rgba(134, 239, 172, 0.25), rgba(74, 222, 128, 0.15));
+  transform: translateY(-1px);
+}
+
+.sidebar-brand-logo svg {
+  width: 19px;
+  height: 19px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+}
+
+.sidebar-brand-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  flex: 1;
+  transition: opacity 0.2s, transform 0.2s;
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.2px;
+  animation: fadeInRight 0.5s ease-out;
+}
+
+.sidebar.collapsed .sidebar-brand-name {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-8px);
+}
+
+/* ─── Toggle Button ───────────────────────────────────────── */
+.sidebar-toggle {
+  display: none;
+}
+
+/* Desktop: sidebar visible by default */
+@media (min-width: 769px) {
+  .sidebar {
+    position: relative !important;
+    transform: none !important;
+  }
+}
+
+/* Mobile: sidebar can be toggled */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    top: 60px;
+    left: 0;
+    height: calc(100vh - 60px) !important;
+    transform: translateX(-100%) !important;
+  }
+  
+  .sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+}
+
+/* ─── Nav ─────────────────────────────────────────────────── */
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.nav-section {
+  padding: 0 0.625rem;
+  margin-bottom: 0.75rem;
+}
+
+.nav-section-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 0.625rem 0.875rem 0.375rem;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity 0.2s;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.sidebar.collapsed .nav-section-label { opacity: 0; }
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.875rem;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  white-space: nowrap;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2px;
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.nav-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateX(4px);
+}
+
+.nav-link.active {
+  color: #ffffff;
+  background: linear-gradient(135deg,
+    rgba(147, 213, 178, 0.25) 0%,
+    rgba(116, 198, 157, 0.15) 100%
+  );
+  border-left: 3px solid #b7e4c7;
+  padding-left: calc(0.875rem - 3px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+.nav-link.active .nav-icon {
+  color: #b7e4c7;
+  filter: drop-shadow(0 0 4px rgba(147, 213, 178, 0.6));
+}
+
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 0.65rem;
+  border-left: none;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: all 0.2s ease;
+}
+
+.nav-label {
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .nav-label {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-8px);
+  width: 0;
+  overflow: hidden;
+}
+
+/* ─── Footer ──────────────────────────────────────────────── */
+.sidebar-footer {
+  padding: 0.875rem 0.625rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.sidebar-footer-langs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 0.625rem;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .sidebar-footer-langs { display: none; }
+
+.sidebar-lang-btn {
+  flex: 1;
+  padding: 5px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+}
+
+.sidebar-lang-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.sidebar-lang-btn.active {
+  background: linear-gradient(135deg, rgba(134, 239, 172, 0.22), rgba(74, 222, 128, 0.14));
+  border-color: rgba(134, 239, 172, 0.3);
+  color: #b7e4c7;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 10px;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.04);
+  color: rgba(252, 165, 165, 0.85);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.logout-btn:hover {
+  background: rgba(220, 38, 38, 0.09);
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #fca5a5;
+}
+
+.logout-btn svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  flex-shrink: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sidebar.collapsed .logout-btn { justify-content: center; padding: 0.65rem; }
+.sidebar.collapsed .logout-btn span { display: none; }
+
+/* ─── Overlay (mobile) ────────────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 31, 20, 0.55);
+  z-index: 299;
+  backdrop-filter: blur(3px);
+}
+
+.sidebar-overlay.visible { display: block; }
+
+/* ─── RTL ─────────────────────────────────────────────────── */
+[dir="rtl"] .sidebar { left: auto; right: 0; }
+[dir="rtl"] .sidebar::after { right: auto; left: 0; }
+[dir="rtl"] .nav-link.active {
+  border-left: none;
+  border-right: 3px solid #86efac;
+  padding-left: 0.875rem;
+  padding-right: calc(0.875rem - 3px);
+}

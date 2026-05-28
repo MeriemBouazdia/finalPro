@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../translations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app/l10n/translations.dart';
 import 'pages/register.dart';
 
 class Login extends StatefulWidget {
@@ -27,7 +29,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   late final AnimationController _errorCtrl;
   late final Animation<double> _errorAnim;
 
-  // ── Singleton GoogleSignIn instance (avoids repeated object creation) ──
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
@@ -53,7 +54,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     _fadeCtrl.forward();
     _slideCtrl.forward();
 
-    // Clear error as soon as user starts correcting their input
     _email.addListener(_clearError);
     _password.addListener(_clearError);
   }
@@ -68,20 +68,15 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // ── Safe translation helper ──────────────────────────────────────────────
-  // Guards against Translations.of(context) returning null when the
-  // locale provider is not yet ready, preventing a null-deref crash.
   String _t(String key, {String fallback = ''}) {
     try {
       final tr = Translations.of(context);
-      if (tr == null) return fallback.isNotEmpty ? fallback : key;
       return tr.get(key);
     } catch (_) {
       return fallback.isNotEmpty ? fallback : key;
     }
   }
 
-  // ── Error banner helpers ─────────────────────────────────────────────────
   void _showError(String msg) {
     if (!mounted) return;
     setState(() => _errorMessage = msg);
@@ -95,7 +90,14 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     });
   }
 
-  // ── Email / password sign-in ─────────────────────────────────────────────
+  /// Persists isLoggedIn = true and navigates to main, clearing the back stack.
+  Future<void> _onLoginSuccess() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+    if (!mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+  }
+
   Future<void> _signIn() async {
     FocusScope.of(context).unfocus();
 
@@ -103,52 +105,44 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     final password = _password.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      _showError(_t('pleaseEnterEmailPassword',
-          fallback: 'Please enter your email and password.'));
-      return;
-    }
-
-    // Basic client-side email format check — avoids a round-trip for obvious typos
-    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
-      _showError(_t('invalidEmail', fallback: 'Please enter a valid email.'));
+      _showError('Please enter email and password');
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      if (!mounted) return;
-      // Reset loading before navigating so dispose() sees clean state
+
+      final uid = userCredential.user!.uid;
+      final snapshot =
+          await FirebaseDatabase.instance.ref("users/$uid/role").get();
+      final role = snapshot.value?.toString();
+
       setState(() => _isLoading = false);
-      Navigator.pushReplacementNamed(context, '/main');
+
+      if (role == "admin") {
+        _showError("Admins must use the web dashboard");
+      } else {
+        await _onLoginSuccess(); // ← saves flag + navigates
+      }
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
       setState(() => _isLoading = false);
       _showError(_mapFirebaseError(e));
-    } catch (e) {
-      // Catch unexpected errors (network, platform exceptions, etc.)
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      _showError(
-          _t('loginFailed', fallback: 'Login failed. Please try again.'));
     }
   }
 
-  // ── Google sign-in ───────────────────────────────────────────────────────
   Future<void> _signInWithGoogle() async {
     setState(() => _isGoogleLoading = true);
 
     try {
-      // Sign out first to force the account-picker every time
       await _googleSignIn.signOut();
 
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      // User cancelled the picker
       if (googleUser == null) {
         if (mounted) setState(() => _isGoogleLoading = false);
         return;
@@ -157,44 +151,34 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      // ── FIX #1: Null-check both tokens before using them ──────────────
-      // accessToken and idToken are both String? — either can be null when:
-      //  • SHA-1 / SHA-256 fingerprints are missing in Firebase console
-      //  • google-services.json is stale
-      //  • Permissions were revoked on the device
-      // Passing null to GoogleAuthProvider.credential() triggers the crash.
-      final String? accessToken = googleAuth.accessToken;
-      final String? idToken = googleAuth.idToken;
-
-      if (accessToken == null && idToken == null) {
-        throw Exception('Google authentication returned null tokens. '
-            'Check your Firebase SHA fingerprints and google-services.json.');
-      }
-
       final credential = GoogleAuthProvider.credential(
-        accessToken: accessToken, // nullable — Firebase accepts one being null
-        idToken: idToken, // nullable — Firebase accepts one being null
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
       );
 
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      final uid = userCredential.user!.uid;
+      final snapshot =
+          await FirebaseDatabase.instance.ref("users/$uid/role").get();
+      final role = snapshot.value?.toString();
 
       if (!mounted) return;
       setState(() => _isGoogleLoading = false);
-      Navigator.pushReplacementNamed(context, '/main');
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      setState(() => _isGoogleLoading = false);
-      _showError(_mapFirebaseError(e));
+
+      if (role == "admin") {
+        _showError("Admins must use the web dashboard");
+      } else {
+        await _onLoginSuccess(); // ← saves flag + navigates
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isGoogleLoading = false);
-      debugPrint('Google sign-in error: $e');
-      _showError(_t('googleSignInFailed',
-          fallback: 'Google sign-in failed. Please try again.'));
+      _showError("Google sign-in failed");
     }
   }
 
-  // ── Firebase error mapper ────────────────────────────────────────────────
   String _mapFirebaseError(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
@@ -203,7 +187,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       case 'wrong-password':
         return _t('incorrectPassword', fallback: 'Incorrect password.');
       case 'invalid-credential':
-        // Firebase v10+ merges user-not-found + wrong-password into this code
         return _t('incorrectPassword', fallback: 'Invalid email or password.');
       case 'invalid-email':
         return _t('invalidEmail', fallback: 'Invalid email address.');
@@ -225,7 +208,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     }
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -242,15 +224,12 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 20),
-
-                    // Illustration
                     ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: Image.asset(
                         'assets/Login-amico.png',
                         height: 180,
                         fit: BoxFit.contain,
-                        // ── FIX: Never crash on a missing asset ──
                         errorBuilder: (_, __, ___) => const SizedBox(
                           height: 180,
                           child: Center(
@@ -260,10 +239,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 32),
-
-                    // Card
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -286,7 +262,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Email
                           _InputField(
                             controller: _email,
                             hint: _t('email', fallback: 'Email'),
@@ -295,8 +270,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                             textInputAction: TextInputAction.next,
                           ),
                           const SizedBox(height: 14),
-
-                          // Password
                           _InputField(
                             controller: _password,
                             hint: _t('password', fallback: 'Password'),
@@ -317,10 +290,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                   () => _obscurePassword = !_obscurePassword),
                             ),
                           ),
-
                           const SizedBox(height: 8),
-
-                          // ── Inline error banner ──────────────────────────
                           AnimatedSize(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
@@ -370,17 +340,12 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                     ),
                                   ),
                           ),
-
-                          // Login button
                           _PrimaryButton(
                             label: _t('login', fallback: 'Login'),
                             isLoading: _isLoading,
                             onTap: _signIn,
                           ),
-
                           const SizedBox(height: 18),
-
-                          // Divider
                           Row(children: [
                             Expanded(child: Divider(color: Colors.grey[200])),
                             Padding(
@@ -392,10 +357,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                             ),
                             Expanded(child: Divider(color: Colors.grey[200])),
                           ]),
-
                           const SizedBox(height: 18),
-
-                          // Google button
                           _GoogleButton(
                             isLoading: _isGoogleLoading,
                             onTap: _signInWithGoogle,
@@ -403,10 +365,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    // Sign-up link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -420,7 +379,8 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                         GestureDetector(
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const Register()),
+                            MaterialPageRoute(
+                                builder: (_) => const RegisterScreen()),
                           ),
                           child: Text(
                             _t('signUp', fallback: 'Sign up'),
@@ -447,9 +407,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Input Field
-// ─────────────────────────────────────────────────────────────
 class _InputField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
@@ -506,9 +463,6 @@ class _InputField extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Primary Button
-// ─────────────────────────────────────────────────────────────
 class _PrimaryButton extends StatelessWidget {
   final String label;
   final bool isLoading;
@@ -555,9 +509,6 @@ class _PrimaryButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Google Button
-// ─────────────────────────────────────────────────────────────
 class _GoogleButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onTap;

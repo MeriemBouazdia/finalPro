@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import '../translations.dart';
+import 'package:app/l10n/translations.dart';
 import 'widget/locale_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -21,8 +21,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   late Animation<Offset> _slideAnimation;
 
   static const _primaryGreen = Color(0xFF2D6A22);
-  static const _lightGreen = Color(0xFFEAF4E7);
-  static const _accentGreen = Color(0xFF4CAF50);
 
   final List<OnboardingPage> _pages = [];
 
@@ -89,10 +87,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   Future<void> _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboarding_seen', true);
-    if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/login');
-    }
+    // FIX: was 'onboarding_seen' — must match the key read in main.dart
+    await prefs.setBool('seenOnboarding', true);
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed('/login');
   }
 
   void _nextPage() {
@@ -255,10 +253,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               const SizedBox(height: 52),
               Text(
                 translations.get(page.titleKey),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1A1A2E),
+                  color: Color(0xFF1A1A2E),
                   letterSpacing: -0.5,
                   height: 1.2,
                 ),

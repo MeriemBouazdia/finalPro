@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenAdmin — Dashboard</title>
+  <link rel="icon" href="logo.png" type="image/png">
+
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sidebar.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/cards.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <div id="header"></div>
+
+    <div class="layout">
+      <div id="sidebar"></div>
+
+      <main class="main-content">
+
+        <div class="page-header">
+          <h1 data-i18n="dashboard">Dashboard</h1>
+          <p data-i18n="Real-time overview of your greenhouse system">
+            Real-time overview of your greenhouse system
+          </p>
+        </div>
+
+        <section class="stats-grid">
+          <div class="stat-card users">
+            <div class="stat-card-glow"></div>
+            <div class="stat-icon green">
+              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            </div>
+            <div class="stat-title">Total Users</div>
+            <div class="stat-value" id="totalUsers"><span class="skeleton"></span></div>
+            <div class="stat-desc">Registered accounts</div>
+          </div>
+
+          <div class="stat-card greenhouses">
+            <div class="stat-card-glow"></div>
+            <div class="stat-icon lime">
+              <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="stat-title">Greenhouses</div>
+            <div class="stat-value" id="totalGH"><span class="skeleton"></span></div>
+            <div class="stat-desc">Across all users</div>
+          </div>
+        </section>
+
+        <section class="gauge-grid">
+
+          <div class="gauge-card">
+            <div class="gauge">
+              <svg viewBox="0 0 90 90">
+                <defs>
+                  <linearGradient id="usersGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#1b6b57"/>
+                    <stop offset="100%" stop-color="#34d399"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="45" cy="45" r="33" class="track"/>
+                <circle id="usersArc" cx="45" cy="45" r="33" class="progress users-progress"
+                        stroke-dasharray="0 207" stroke-dashoffset="0"/>
+                <text id="usersText" x="45" y="48">0%</text>
+              </svg>
+            </div>
+            <div class="gauge-info">
+              <h3>Users Activity</h3>
+              <p>Live Firebase data</p>
+            </div>
+          </div>
+
+          <div class="gauge-card">
+            <div class="gauge">
+              <svg viewBox="0 0 90 90">
+                <defs>
+                  <linearGradient id="ghGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#65a30d"/>
+                    <stop offset="100%" stop-color="#a3e635"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="45" cy="45" r="33" class="track"/>
+                <circle id="ghArc" cx="45" cy="45" r="33" class="progress gh-progress"
+                        stroke-dasharray="0 207" stroke-dashoffset="0"/>
+                <text id="ghText" x="45" y="48">0%</text>
+              </svg>
+            </div>
+            <div class="gauge-info">
+              <h3>Greenhouses</h3>
+              <p>Live Firebase data</p>
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+
+    <div id="footer"></div>
+
+  </div>
+  <script type="module">
+    import { initDashboard, database } from "../js/main.js";
+    import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    await initDashboard(".");
+
+    onValue(ref(database, "users"), snap => {
+      const users = snap.val() || {};
+      const count = Object.keys(users).length;
+      document.getElementById("totalUsers").textContent = count;
+
+      const pct = Math.min(count / 100, 1);
+      document.getElementById("usersArc").setAttribute("stroke-dasharray", `${pct * 207} 207`);
+      document.getElementById("usersText").textContent = Math.round(pct * 100) + "%";
+
+      let ghCount = 0;
+      Object.values(users).forEach(u => {
+        if (u.greenhouses) ghCount += Object.keys(u.greenhouses).length;
+      });
+      document.getElementById("totalGH").textContent = ghCount;
+
+      const ghPct = Math.min(ghCount / 50, 1);
+      document.getElementById("ghArc").setAttribute("stroke-dasharray", `${ghPct * 207} 207`);
+      document.getElementById("ghText").textContent = Math.round(ghPct * 100) + "%";
+    });
+  </script>
+
+</body>
+</html>

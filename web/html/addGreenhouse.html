@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenAdmin — Add Greenhouse</title>
+
+  <link rel="icon" href="logo.png" type="image/png">
+
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sidebar.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/cards.css">
+  <link rel="stylesheet" href="../css/form.css">
+  <link rel="stylesheet" href="../css/buttons.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+  <div class="app-shell">
+    <div id="header"></div>
+
+    <div class="layout">
+      <div id="sidebar"></div>
+
+      <main class="main-content" style="display:flex;justify-content:center;align-items:flex-start;padding-top:2rem">
+
+        <div class="card" style="width:100%;max-width:480px">
+
+          <h1 style="font-size:16px;font-weight:700;margin-bottom:0.25rem">
+            Add Greenhouse
+          </h1>
+
+          <p style="font-size:13px;color:var(--text3);margin-bottom:1.5rem">
+            Create a new greenhouse for a user.
+          </p>
+
+          <!--
+            FIX: id was "greenhouseForm" but addGreenhouse.js queries
+            document.getElementById("userForm") — changed to match the JS.
+          -->
+          <form id="userForm">
+
+            <!-- User Email
+                 FIX: id was "userEmail" but addGreenhouse.js reads
+                 document.getElementById("email") — corrected to id="email". -->
+            <div class="field">
+              <label>User Email</label>
+              <input type="email" id="email" placeholder="user@example.com" required>
+            </div>
+
+            <!-- Greenhouse Name
+                 FIX: id was "ghName" but addGreenhouse.js reads
+                 document.getElementById("name") — corrected to id="name". -->
+            <div class="field">
+              <label>Greenhouse Name</label>
+              <input type="text" id="name" placeholder="Greenhouse 1" required>
+            </div>
+
+            <!-- Location — id="location" already matched, no change needed -->
+            <div class="field">
+              <label>Location</label>
+              <input type="text" id="location" placeholder="Tlemcen..." required>
+            </div>
+
+            <hr style="border:none;border-top:1px solid var(--border);margin:1.25rem 0">
+
+            <button type="submit" class="btn-primary" style="width:100%">
+              Add Greenhouse
+            </button>
+
+            <div id="message" style="margin-top:10px;text-align:center;font-size:13px"></div>
+
+          </form>
+
+        </div>
+
+      </main>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script type="module">
+    import { initDashboard } from "../js/main.js";
+    await initDashboard(".");
+  </script>
+
+  <script type="module" src="../js/addGreenhouse.js"></script>
+
+</body>
+</html>

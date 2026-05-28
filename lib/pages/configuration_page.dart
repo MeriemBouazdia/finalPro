@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import '../../translations.dart';
+import '../l10n/translations.dart';
 import 'widget/theme_provider.dart';
 
 class ConfigurationPage extends StatefulWidget {
@@ -15,15 +15,8 @@ class ConfigurationPage extends StatefulWidget {
 }
 
 class _ConfigurationPageState extends State<ConfigurationPage> {
-  // Controllers
-  final minTempController = TextEditingController();
-  final maxTempController = TextEditingController();
-  final minHumController = TextEditingController();
-  final maxHumController = TextEditingController();
-  final minSoilController = TextEditingController();
-  final maxSoilController = TextEditingController();
-  final minLightController = TextEditingController();
-  final maxLightController = TextEditingController();
+  final tempController = TextEditingController();
+  final soilController = TextEditingController();
 
   late final DatabaseReference _targetsRef;
   bool _isLoading = true;
@@ -38,8 +31,6 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
           .ref("users/${user.uid}/greenhouses/${widget.ghId}/targets");
       _loadExistingValues();
     } else {
-      // User is not authenticated — navigate back immediately.
-      // This state should not be reachable if auth guards are in place.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.of(context).pop();
       });
@@ -55,81 +46,31 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
         if (mounted) {
           setState(() {
-            // Temperature
-            if (data['temperature'] != null) {
-              final temp = Map<String, dynamic>.from(data['temperature']);
-              minTempController.text = temp['min']?.toString() ?? '';
-              maxTempController.text = temp['max']?.toString() ?? '';
-            }
-            // Humidity
-            if (data['humidity'] != null) {
-              final hum = Map<String, dynamic>.from(data['humidity']);
-              minHumController.text = hum['min']?.toString() ?? '';
-              maxHumController.text = hum['max']?.toString() ?? '';
-            }
-            // Soil
-            if (data['soil'] != null) {
-              final soil = Map<String, dynamic>.from(data['soil']);
-              minSoilController.text = soil['min']?.toString() ?? '';
-              maxSoilController.text = soil['max']?.toString() ?? '';
-            }
-            // Light
-            if (data['light'] != null) {
-              final light = Map<String, dynamic>.from(data['light']);
-              minLightController.text = light['min']?.toString() ?? '';
-              maxLightController.text = light['max']?.toString() ?? '';
-            }
+            tempController.text = data['temperature']?.toString() ?? '';
+            soilController.text = data['soil']?.toString() ?? '';
             _isLoading = false;
           });
         }
       } else {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+        if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
       debugPrint('Error loading config: $e');
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  double? _parseDouble(String value) {
-    if (value.isEmpty) return null;
-    return double.tryParse(value);
-  }
-
-  // Save data as numbers
   Future<void> saveData() async {
     final tr = Translations.of(context);
     setState(() => _isSaving = true);
 
     try {
+      final temperature = double.tryParse(tempController.text);
+      final soil = int.tryParse(soilController.text);
+
       final Map<String, dynamic> data = {};
-
-      // Parse and save as numbers
-      final minTemp = _parseDouble(minTempController.text);
-      final maxTemp = _parseDouble(maxTempController.text);
-      final minHum = _parseDouble(minHumController.text);
-      final maxHum = _parseDouble(maxHumController.text);
-      final minSoil = _parseDouble(minSoilController.text);
-      final maxSoil = _parseDouble(maxSoilController.text);
-      final minLight = _parseDouble(minLightController.text);
-      final maxLight = _parseDouble(maxLightController.text);
-
-      if (minTemp != null && maxTemp != null) {
-        data['temperature'] = {'min': minTemp, 'max': maxTemp};
-      }
-      if (minHum != null && maxHum != null) {
-        data['humidity'] = {'min': minHum, 'max': maxHum};
-      }
-      if (minSoil != null && maxSoil != null) {
-        data['soil'] = {'min': minSoil, 'max': maxSoil};
-      }
-      if (minLight != null && maxLight != null) {
-        data['light'] = {'min': minLight, 'max': maxLight};
-      }
+      if (temperature != null) data['temperature'] = temperature;
+      if (soil != null) data['soil'] = soil;
 
       if (data.isNotEmpty) {
         await _targetsRef.update(data);
@@ -154,18 +95,14 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
   Widget buildSection(
     String title,
-    String minLabel,
-    String maxLabel,
-    TextEditingController minCtrl,
-    TextEditingController maxCtrl,
+    String label,
+    TextEditingController ctrl,
     bool isDarkMode,
   ) {
     return Card(
@@ -185,30 +122,14 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
             ),
             const SizedBox(height: 10),
             TextField(
-              controller: minCtrl,
+              controller: ctrl,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               style: TextStyle(
                 color: isDarkMode ? Colors.white : Colors.black87,
               ),
               decoration: InputDecoration(
-                labelText: minLabel,
-                labelStyle: TextStyle(
-                  color: isDarkMode ? Colors.white70 : Colors.grey[600],
-                ),
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: maxCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              style: TextStyle(
-                color: isDarkMode ? Colors.white : Colors.black87,
-              ),
-              decoration: InputDecoration(
-                labelText: maxLabel,
+                labelText: label,
                 labelStyle: TextStyle(
                   color: isDarkMode ? Colors.white70 : Colors.grey[600],
                 ),
@@ -223,14 +144,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
   @override
   void dispose() {
-    minTempController.dispose();
-    maxTempController.dispose();
-    minHumController.dispose();
-    maxHumController.dispose();
-    minSoilController.dispose();
-    maxSoilController.dispose();
-    minLightController.dispose();
-    maxLightController.dispose();
+    tempController.dispose();
+    soilController.dispose();
     super.dispose();
   }
 
@@ -267,33 +182,17 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
         child: Column(
           children: [
             buildSection(
-                tr.get('temperatureSettings'),
-                tr.get('minTemperature'),
-                tr.get('maxTemperature'),
-                minTempController,
-                maxTempController,
-                isDarkMode),
+              tr.get('temperatureSettings'),
+              tr.get('temperature'),
+              tempController,
+              isDarkMode,
+            ),
             buildSection(
-                tr.get('humiditySettings'),
-                tr.get('minHumidity'),
-                tr.get('maxHumidity'),
-                minHumController,
-                maxHumController,
-                isDarkMode),
-            buildSection(
-                tr.get('soilSettings'),
-                tr.get('minSoil'),
-                tr.get('maxSoil'),
-                minSoilController,
-                maxSoilController,
-                isDarkMode),
-            buildSection(
-                tr.get('lightSettings'),
-                tr.get('minLight'),
-                tr.get('maxLight'),
-                minLightController,
-                maxLightController,
-                isDarkMode),
+              tr.get('soilSettings'),
+              tr.get('soil'),
+              soilController,
+              isDarkMode,
+            ),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

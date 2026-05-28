@@ -1,0 +1,17 @@
+/* ─────────────────────────────────────────────────────────────
+   FOOTER
+   ───────────────────────────────────────────────────────────── */
+
+.app-footer {
+  background: var(--sidebar-bg);
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 12px;
+  flex-shrink: 0;
+  letter-spacing: 0.2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../translations.dart';
+import 'package:app/l10n/translations.dart';
 import 'home_page.dart';
-import 'chat_page.dart';
+import '../screens/bot_page.dart';
 import 'profile_page.dart';
 import 'configuration_page.dart';
 import 'widget/theme_provider.dart';
+import '../screens/history_screen.dart';
+import 'screenchat.dart';
 
 class MainScreen extends StatefulWidget {
   final String ghId;
@@ -24,7 +26,9 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _pages = [
       HomePage(ghId: widget.ghId),
-      const ChatPage(),
+      HistoryPage(firebaseGhId: widget.ghId),
+      BotPage(greenhouseId: widget.ghId),
+      const ChatScreen(),
       ConfigurationPage(ghId: widget.ghId),
       const ProfilePage(),
     ];
@@ -33,9 +37,7 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   @override
@@ -56,15 +58,32 @@ class _MainScreenState extends State<MainScreen> {
         unselectedItemColor: isDarkMode ? Colors.white54 : Colors.grey,
         backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         type: BottomNavigationBarType.fixed,
+        // 5 items → 5 pages, perfectly aligned
         items: [
           BottomNavigationBarItem(
-              icon: const Icon(Icons.home), label: tr.get('home')),
+            icon: const Icon(Icons.home),
+            label: tr.get('home'),
+          ),
           BottomNavigationBarItem(
-              icon: const Icon(Icons.chat), label: tr.get('chat')),
+            icon: const Icon(Icons.history),
+            label: tr.get('history'),
+          ),
           BottomNavigationBarItem(
-              icon: const Icon(Icons.settings), label: tr.get('settings')),
+            icon: const Icon(Icons.chat),
+            label: tr.get('chat'),
+          ),
           BottomNavigationBarItem(
-              icon: const Icon(Icons.person), label: tr.get('profile')),
+            icon: const Icon(Icons.chat),
+            label: tr.get('messaging'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.settings),
+            label: tr.get('settings'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person),
+            label: tr.get('profile'),
+          ),
         ],
       ),
     );

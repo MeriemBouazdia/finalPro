@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenAdmin — Greenhouses</title>
+  <link rel="icon" href="logo.png" type="image/png">
+
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sidebar.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/cards.css">
+  <link rel="stylesheet" href="../css/table.css">
+  <link rel="stylesheet" href="../css/buttons.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+
+  <style>
+    /* ── Modal Overlay ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── Modal Card ── */
+    .modal-card {
+      background: var(--surface, #fff);
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 440px;
+      padding: 1.75rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .modal-overlay.open .modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text, #111);
+      margin: 0 0 0.25rem;
+    }
+    .modal-sub {
+      font-size: 12px;
+      color: var(--text3, #9ca3af);
+      margin: 0 0 1.25rem;
+    }
+
+    /* ── Modal Fields ── */
+    .modal-field {
+      margin-bottom: 1rem;
+    }
+    .modal-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2, #374151);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .modal-field input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 8px;
+      font-size: 13.5px;
+      color: var(--text, #111);
+      background: var(--surface, #fff);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .modal-field input:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.12);
+    }
+
+    .modal-divider {
+      border: none;
+      border-top: 1px solid var(--border, #e5e7eb);
+      margin: 1.25rem 0 1rem;
+    }
+
+    /* ── Modal Actions ── */
+    .modal-actions {
+      display: flex;
+      gap: 0.625rem;
+      justify-content: flex-end;
+    }
+    .btn-cancel {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 7px;
+      background: transparent;
+      font-size: 13px;
+      color: var(--text2, #374151);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-cancel:hover { background: var(--surface2, #f9fafb); }
+
+    .btn-save {
+      padding: 0.5rem 1.2rem;
+      border: none;
+      border-radius: 7px;
+      background: #16a34a;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn-save:hover { background: #15803d; }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── Modal Status ── */
+    .modal-status {
+      font-size: 12px;
+      text-align: center;
+      min-height: 18px;
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* ── Update button in table ── */
+    .btn-update {
+      padding: 0.3rem 0.75rem;
+      border: 1px solid #16a34a;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 600;
+      color: #16a34a;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      margin-right: 0.375rem;
+    }
+    .btn-update:hover {
+      background: #16a34a;
+      color: #fff;
+    }
+
+    /* ── Section badge inside modal ── */
+    .modal-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3, #9ca3af);
+      margin: 1rem 0 0.5rem;
+    }
+
+    /* ── Danger / Delete button in table ── */
+    .btn-danger {
+      padding: 0.3rem 0.75rem;
+      border: 1px solid #dc2626;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 600;
+      color: #dc2626;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-danger:hover {
+      background: #dc2626;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+    <div id="header"></div>
+
+    <div class="layout">
+      <div id="sidebar"></div>
+
+      <main class="main-content">
+        <div class="page-header">
+          <h1 data-i18n="greenhouses">Greenhouses</h1>
+          <p>All greenhouses across every user</p>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>All Greenhouses</h3>
+          </div>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Greenhouse</th>
+                <th>Location</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody1">
+              <tr>
+                <td colspan="5" style="padding:2rem;text-align:center">
+                  <span class="skeleton" style="width:200px;display:inline-block"></span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <!-- ── Edit Modal ── -->
+  <div class="modal-overlay" id="editModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <p class="modal-title" id="modalTitle">Edit Greenhouse</p>
+      <p class="modal-sub">Changes are saved directly to Firebase.</p>
+
+      <p class="modal-section-label">👤 User info</p>
+      <div class="modal-field">
+        <label for="edit-name">Full Name</label>
+        <input type="text" id="edit-name" placeholder="Jane Doe" autocomplete="off">
+      </div>
+      <div class="modal-field">
+        <label for="edit-email">Email</label>
+        <input type="email" id="edit-email" placeholder="email@example.com" autocomplete="off">
+      </div>
+
+      <p class="modal-section-label">🌿 Greenhouse info</p>
+      <div class="modal-field">
+        <label for="edit-ghname">Greenhouse Name</label>
+        <input type="text" id="edit-ghname" placeholder="My Greenhouse" autocomplete="off">
+      </div>
+      <div class="modal-field">
+        <label for="edit-ghlocation">Location</label>
+        <input type="text" id="edit-ghlocation" placeholder="City / Region" autocomplete="off">
+      </div>
+
+      <hr class="modal-divider">
+
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modalCancelBtn" type="button">Cancel</button>
+        <button class="btn-save"   id="modalSaveBtn"   type="button">Save changes</button>
+      </div>
+      <div class="modal-status" id="modalStatus"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initDashboard } from "../js/main.js";
+    await initDashboard(".");
+  </script>
+  <script type="module" src="../js/Greenhouse.js"></script>
+
+</body>
+</html>

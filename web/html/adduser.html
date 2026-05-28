@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title data-i18n="title_addUser">GreenAdmin — Add User</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sidebar.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/cards.css">
+  <link rel="stylesheet" href="../css/form.css">
+  <link rel="stylesheet" href="../css/buttons.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <div id="header"></div>
+
+    <div class="layout">
+      <div id="sidebar"></div>
+
+      <main class="main-content main-content--centered">
+
+        <div class="card card--form">
+
+          <h2 class="card__title" data-i18n="addUser">Add User</h2>
+
+          <p class="card__subtitle" data-i18n="form_createNewAccount">
+            Create a new account.
+          </p>
+
+          <form id="userForm" novalidate>
+
+            <!-- FULL NAME -->
+            <div class="field" id="field-name">
+              <label for="name" data-i18n="form_fullName">Full name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Jane Doe"
+                autocomplete="name"
+                data-i18n-placeholder="form_fullName">
+              <div class="error-msg" data-i18n="err_name">
+                Please enter a full name.
+              </div>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="field" id="field-email">
+              <label for="email" data-i18n="form_email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="email@example.com"
+                autocomplete="email"
+                data-i18n-placeholder="form_email">
+              <div class="error-msg" data-i18n="err_email">
+                Enter a valid email address.
+              </div>
+            </div>
+
+            <!-- ROLE -->
+            <div class="field">
+              <label for="role" data-i18n="form_role">Role</label>
+              <select id="role" name="role">
+                <option value="user"  data-i18n="form_userOption">User</option>
+                <option value="admin" data-i18n="form_adminOption">Admin</option>
+              </select>
+            </div>
+
+            <hr class="form-divider">
+
+            <!-- SUBMIT -->
+            <button
+              type="submit"
+              class="btn-primary btn-primary--full"
+              data-i18n="form_addUserButton">
+              Add User
+            </button>
+
+            <!-- STATUS MESSAGE -->
+            <div id="message" class="form-message" role="status" aria-live="polite"></div>
+
+            <!-- TEMP PASSWORD -->
+            <div id="tempPasswordBox" class="otp-box" hidden>
+              <p class="otp-box__label" data-i18n="otp_sent">
+                 OTP sent successfully to user email
+              </p>
+              <span id="tempPasswordValue" class="otp-box__code"></span>
+              <p class="otp-box__warning">
+                This will disappear in 2 minutes
+              </p>
+            </div>
+
+          </form>
+
+        </div>
+      </main>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <!-- EMAILJS — key is passed per .send() call in addUser.js; init not needed -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <script type="module">
+    import { initDashboard } from "../js/main.js";
+    await initDashboard(".");
+  </script>
+
+  <script type="module" src="../js/addUser.js"></script>
+
+</body>
+</html>

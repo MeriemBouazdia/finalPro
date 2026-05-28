@@ -1,601 +1,209 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import '../../translations.dart';
-import 'dart:ui' as ui;
+import 'package:flutter/material.dart';
+import '../core/errors/app_exception.dart';
+import '../core/validators/register_validators.dart';
+import '../models/farm_location.dart';
+import '../repositories/user_repository.dart';
+import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import '../services/location_service.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Map Location Picker
-// ─────────────────────────────────────────────────────────────────────────────
-class MapLocationPicker extends StatefulWidget {
-  final LatLng? initialLocation;
-
-  const MapLocationPicker({super.key, this.initialLocation});
-
-  @override
-  State<MapLocationPicker> createState() => _MapLocationPickerState();
-}
-
-class _MapLocationPickerState extends State<MapLocationPicker> {
-  static const Color primaryGreen = Color(0xFF1B5E20);
-
-  late LatLng _selectedLocation;
-  final MapController _mapController = MapController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Default to centre of Algeria if no location provided
-    _selectedLocation = widget.initialLocation ?? const LatLng(28.0339, 1.6596);
-  }
-
-  @override
-  void dispose() {
-    _mapController.dispose(); // FIX: always dispose MapController
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: primaryGreen,
-        foregroundColor: Colors.white,
-        title: const Text(
-          'Pick Farm Location',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, _selectedLocation),
-            child: const Text(
-              'Confirm',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // ── Map ──
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _selectedLocation,
-              initialZoom: 6,
-              onTap: (tapPosition, point) {
-                setState(() => _selectedLocation = point);
-                // FIX: re-centre map on tapped point, keep current zoom
-                _mapController.move(point, _mapController.camera.zoom);
-              },
-            ),
-            children: [
-              TileLayer(
-                // FIX: use HTTPS tile URL + correct user agent
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName:
-                    'com.example.app', // ← replace with your real package name
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: _selectedLocation,
-                    width: 60,
-                    height: 60,
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: primaryGreen,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: primaryGreen.withValues(alpha: 0.4),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.agriculture,
-                              color: Colors.white, size: 20),
-                        ),
-                        CustomPaint(
-                          size: const Size(12, 8),
-                          painter: _TrianglePainter(color: primaryGreen),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          // ── Coordinates chip ──
-          Positioned(
-            bottom: 24,
-            left: 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.location_on,
-                        color: primaryGreen, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Selected Location',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${_selectedLocation.latitude.toStringAsFixed(5)}, '
-                          '${_selectedLocation.longitude.toStringAsFixed(5)}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A1A),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context, _selectedLocation),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: primaryGreen,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        'Done',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // ── Tap hint ──
-          Positioned(
-            top: 16,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Tap on the map to place your farm',
-                  style: TextStyle(color: Colors.white, fontSize: 13),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Arrow triangle under the marker
-class _TrianglePainter extends CustomPainter {
-  final Color color;
-  _TrianglePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paintObj = Paint()..color = color;
-
-    final path = ui.Path()
-      ..moveTo(size.width / 2, size.height)
-      ..lineTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..close();
-
-    canvas.drawPath(path, paintObj);
-  }
-
-  @override
-  bool shouldRepaint(_TrianglePainter old) => old.color != color;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Mini map preview widget (extracted to avoid unnecessary rebuilds)
-// ─────────────────────────────────────────────────────────────────────────────
-class _MiniMapPreview extends StatelessWidget {
-  final LatLng location;
-  final VoidCallback onChangeTap;
-
-  static const Color primaryGreen = Color(0xFF1B5E20);
-
-  const _MiniMapPreview({
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({
     super.key,
-    required this.location,
-    required this.onChangeTap,
-  });
+    UserRepository? userRepository,
+    LocationService? locationService,
+  })  : _userRepository = userRepository,
+        _locationService = locationService;
+
+  final UserRepository? _userRepository;
+  final LocationService? _locationService;
 
   @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      // FIX: RepaintBoundary isolates map repaints from the parent scroll view
-      child: RepaintBoundary(
-        child: SizedBox(
-          height: 140,
-          child: Stack(
-            children: [
-              FlutterMap(
-                // FIX: stable options — no MapController needed for preview
-                options: MapOptions(
-                  initialCenter: location,
-                  initialZoom: 13,
-                  interactionOptions: const InteractionOptions(
-                    // FIX: disable all interaction for preview-only map
-                    flags: InteractiveFlag.none,
-                  ),
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName:
-                        'com.example.app', // ← replace with your real package name
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: location,
-                        width: 36,
-                        height: 36,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: primaryGreen,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const Icon(Icons.agriculture,
-                              color: Colors.white, size: 18),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              // Edit overlay
-              Positioned(
-                top: 8,
-                right: 8,
-                child: GestureDetector(
-                  onTap: onChangeTap,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.edit_location_alt,
-                            size: 14, color: primaryGreen),
-                        SizedBox(width: 4),
-                        Text(
-                          'Change',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: primaryGreen,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Register Page
-// ─────────────────────────────────────────────────────────────────────────────
-class Register extends StatefulWidget {
-  const Register({super.key});
+class _RegisterScreenState extends State<RegisterScreen>
+    with TickerProviderStateMixin {
+  // Services / Repositories
+  late final UserRepository _userRepository;
+  late final LocationService _locationService;
 
-  @override
-  State<Register> createState() => _RegisterPageState();
-}
-
-class _RegisterPageState extends State<Register>
-    with SingleTickerProviderStateMixin {
+  // Form
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
-  bool isLoading = false;
-  bool _hasGreenhouse = false;
+  // UI State
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  LatLng? _pickedLocation;
+  bool _hasGreenhouse = false;
+  FarmLocation? _farmLocation;
+  bool _isDetectingLocation = false;
+  bool _isRegistering = false;
 
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+  // Animations
+  late final AnimationController _fadeController;
+  late final AnimationController _slideController;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<Offset> _slideAnimation;
 
-  static const Color primaryGreen = Color(0xFF1B5E20);
-  static const Color lightGreen = Color(0xFF388E3C);
-  static const Color softGreen = Color(0xFFE8F5E9);
+  //Lifecycle
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+
+    _userRepository = widget._userRepository ??
+        UserRepository(
+          authService: AuthService(),
+          apiService: ApiService(),
+        );
+
+    _locationService = widget._locationService ?? LocationService();
+
+    _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-        parent: _animationController, curve: Curves.easeOutCubic));
-    _animationController.forward();
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
+    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+    );
+
+    _fadeController.forward();
+    _slideController.forward();
   }
 
   @override
   void dispose() {
-    nameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    _animationController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _fadeController.dispose();
+    _slideController.dispose();
     super.dispose();
   }
 
-  // ── Validators ──────────────────────────────────────────────────────────
-  String? _validateEmail(String? value) {
-    final tr = Translations.of(context);
-    if (value == null || value.isEmpty) return tr.get('emailRequired');
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) return tr.get('validEmail');
-    return null;
-  }
+  // Handlers
 
-  String? _validatePassword(String? value) {
-    final tr = Translations.of(context);
-    if (value == null || value.isEmpty) return tr.get('passwordRequired');
-    if (value.length < 6) return tr.get('passwordMinLength');
-    return null;
-  }
+  Future<void> _handleDetectLocation() async {
+    if (_isDetectingLocation) return;
+    _setDetectingLocation(true);
 
-  String? _validateConfirmPassword(String? value) {
-    final tr = Translations.of(context);
-    if (value == null || value.isEmpty) {
-      return tr.get('confirmPasswordRequired');
-    }
-    if (value != passwordController.text) return tr.get('passwordsDoNotMatch');
-    return null;
-  }
-
-  String? _validateName(String? value) {
-    final tr = Translations.of(context);
-    if (value == null || value.isEmpty) return tr.get('nameRequired');
-    if (value.length < 2) return tr.get('nameMinLength');
-    return null;
-  }
-
-  // ── Open map picker ──────────────────────────────────────────────────────
-  Future<void> _openMapPicker() async {
-    final result = await Navigator.push<LatLng>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MapLocationPicker(initialLocation: _pickedLocation),
-      ),
-    );
-    if (result != null) {
-      setState(() => _pickedLocation = result);
+    try {
+      final location = await _locationService.detectCurrentLocation();
+      if (!mounted) return;
+      setState(() => _farmLocation = location);
+      _showSnackbar('Location detected: ${location.locationName}');
+    } on AppException catch (e) {
+      if (mounted) _showSnackbar(e.message);
+    } finally {
+      if (mounted) _setDetectingLocation(false);
     }
   }
 
-  // ── Register ─────────────────────────────────────────────────────────────
-  Future<void> register() async {
+  Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final tr = Translations.of(context);
-
-    if (_pickedLocation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.location_off, color: Colors.white, size: 18),
-              SizedBox(width: 8),
-              Text('Please pick your farm location on the map'),
-            ],
-          ),
-          backgroundColor: Colors.orange.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
+    if (_farmLocation == null) {
+      _showSnackbar('Please detect your farm location');
       return;
     }
 
-    setState(() => isLoading = true);
+    setState(() => _isRegistering = true);
 
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      await _userRepository.registerFarmer(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        hasGreenhouse: _hasGreenhouse,
+        farmLocation: _farmLocation!,
       );
 
-      await userCredential.user?.updateDisplayName(nameController.text.trim());
-
-      final DatabaseReference ref = FirebaseDatabase.instance.ref();
-      await ref.child('users').child(userCredential.user!.uid).set({
-        'name': nameController.text.trim(),
-        'email': emailController.text.trim(),
-        'role': 'farmer',
-        'hasGreenhouse': _hasGreenhouse,
-        'farmLocation': {
-          'lat': _pickedLocation!.latitude,
-          'lng': _pickedLocation!.longitude,
-        },
-        'greenhouse_access': [],
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(tr
-                  .getWithParams('welcomeUser', {'name': nameController.text})),
-            ],
-          ),
-          backgroundColor: primaryGreen,
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-
-      await Future.delayed(const Duration(milliseconds: 800));
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/main');
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      setState(() => isLoading = false);
-
-      String errorMsg;
-      switch (e.code) {
-        case 'email-already-in-use':
-          errorMsg = tr.get('emailAlreadyRegistered');
-          break;
-        case 'weak-password':
-          errorMsg = tr.get('weakPassword');
-          break;
-        case 'invalid-email':
-          errorMsg = tr.get('invalidEmailAddress');
-          break;
-        default:
-          errorMsg = e.message ?? tr.get('registrationFailed');
+      // Write additional user data to Firebase Realtime Database
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseDatabase.instance.ref("users/${user.uid}").set({
+          "name": _nameController.text.trim(),
+          "email": _emailController.text.trim(),
+          "role": "farmer",
+          "status": "pending",
+          "hasGreenhouse": _hasGreenhouse,
+          "farmLocation": {
+            "lat": _farmLocation!.latitude,
+            "lng": _farmLocation!.longitude,
+          },
+          "createdAt": DateTime.now().toIso8601String(),
+        });
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(errorMsg)),
-          ]),
-          backgroundColor: Colors.red.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    } catch (e) {
       if (!mounted) return;
-      setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Text(tr.get('errorOccurred')),
-          ]),
-          backgroundColor: Colors.red.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => isLoading = false);
+      setState(() => _isRegistering = false);
+
+      _showSuccessDialog();
+    } on AppException catch (e) {
+      if (mounted) {
+        setState(() => _isRegistering = false);
+        _showSnackbar(e.message);
+      }
     }
   }
 
-  // ── UI ───────────────────────────────────────────────────────────────────
+  void _setDetectingLocation(bool value) {
+    if (mounted) setState(() => _isDetectingLocation = value);
+  }
+
+  void _showSnackbar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('Account Created'),
+        content: const Text(
+          'Your account is pending admin approval. '
+          "You'll be notified once approved.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // close dialog
+              Navigator.pushReplacementNamed(context, '/main'); // go to main
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //Build
   @override
   Widget build(BuildContext context) {
-    final tr = Translations.of(context);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -607,10 +215,35 @@ class _RegisterPageState extends State<Register>
               position: _slideAnimation,
               child: Column(
                 children: [
-                  _buildHeader(),
+                  const _Header(),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-                    child: _buildFormCard(tr),
+                    child: _FormCard(
+                      formKey: _formKey,
+                      nameController: _nameController,
+                      emailController: _emailController,
+                      passwordController: _passwordController,
+                      confirmPasswordController: _confirmPasswordController,
+                      obscurePassword: _obscurePassword,
+                      obscureConfirmPassword: _obscureConfirmPassword,
+                      hasGreenhouse: _hasGreenhouse,
+                      farmLocation: _farmLocation,
+                      isDetectingLocation: _isDetectingLocation,
+                      isRegistering: _isRegistering,
+                      onToggleObscurePassword: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                      onToggleObscureConfirm: () => setState(
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
+                      ),
+                      onToggleGreenhouse: (v) =>
+                          setState(() => _hasGreenhouse = v),
+                      onDetectLocation: _handleDetectLocation,
+                      onRegister: _handleRegister,
+                      onGoToLogin: () =>
+                          Navigator.pushReplacementNamed(context, '/login'),
+                      getPassword: () => _passwordController.text,
+                    ),
                   ),
                 ],
               ),
@@ -620,8 +253,18 @@ class _RegisterPageState extends State<Register>
       ),
     );
   }
+}
 
-  Widget _buildHeader() {
+// Header
+
+class _Header extends StatelessWidget {
+  const _Header();
+
+  static const Color _primaryGreen = Color(0xFF1B5E20);
+  static const Color _lightGreen = Color(0xFF4CAF50);
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 40, 24, 28),
       child: Column(
@@ -637,14 +280,14 @@ class _RegisterPageState extends State<Register>
               height: 80,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [lightGreen, primaryGreen],
+                  colors: [_lightGreen, _primaryGreen],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: primaryGreen.withValues(alpha: 0.3),
+                    color: _primaryGreen.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -660,25 +303,71 @@ class _RegisterPageState extends State<Register>
             style: TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.w800,
-              color: primaryGreen,
+              color: _primaryGreen,
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            'Register to manage your greenhouse',
+            'Register to manage your farm',
             style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-                fontWeight: FontWeight.w400),
+              fontSize: 14,
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w400,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildFormCard(Translations tr) {
+class _FormCard extends StatelessWidget {
+  const _FormCard({
+    required this.formKey,
+    required this.nameController,
+    required this.emailController,
+    required this.passwordController,
+    required this.confirmPasswordController,
+    required this.obscurePassword,
+    required this.obscureConfirmPassword,
+    required this.hasGreenhouse,
+    required this.farmLocation,
+    required this.isDetectingLocation,
+    required this.isRegistering,
+    required this.onToggleObscurePassword,
+    required this.onToggleObscureConfirm,
+    required this.onToggleGreenhouse,
+    required this.onDetectLocation,
+    required this.onRegister,
+    required this.onGoToLogin,
+    required this.getPassword,
+  });
+
+  final GlobalKey<FormState> formKey;
+  final TextEditingController nameController;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final TextEditingController confirmPasswordController;
+  final bool obscurePassword;
+  final bool obscureConfirmPassword;
+  final bool hasGreenhouse;
+  final FarmLocation? farmLocation;
+  final bool isDetectingLocation;
+  final bool isRegistering;
+  final VoidCallback onToggleObscurePassword;
+  final VoidCallback onToggleObscureConfirm;
+  final ValueChanged<bool> onToggleGreenhouse;
+  final VoidCallback onDetectLocation;
+  final VoidCallback onRegister;
+  final VoidCallback onGoToLogin;
+  final String Function() getPassword;
+
+  static const Color _primaryGreen = Color(0xFF1B5E20);
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -691,136 +380,142 @@ class _RegisterPageState extends State<Register>
             offset: const Offset(0, 12),
           ),
           BoxShadow(
-            color: primaryGreen.withValues(alpha: 0.05),
+            color: _primaryGreen.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Form(
-        key: _formKey,
+        key: formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Full Name
-            _buildField(
+            _FormField(
               controller: nameController,
-              label: tr.get('fullName'),
-              hint: tr.get('enterFullName'),
+              label: 'Full Name',
+              hint: 'Enter your full name',
               icon: Icons.person_outline,
-              validator: _validateName,
-              textInputAction: TextInputAction.next,
+              validator: RegisterValidators.name,
             ),
             const SizedBox(height: 16),
-
-            // Email
-            _buildField(
+            _FormField(
               controller: emailController,
-              label: tr.get('email'),
-              hint: tr.get('enterEmail'),
+              label: 'Email',
+              hint: 'your@email.com',
               icon: Icons.email_outlined,
-              validator: _validateEmail,
+              validator: RegisterValidators.email,
               keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 16),
-
-            // Password
-            _buildField(
+            _FormField(
               controller: passwordController,
-              label: tr.get('password'),
+              label: 'Password',
               hint: '••••••••',
               icon: Icons.lock_outline,
-              validator: _validatePassword,
-              obscureText: _obscurePassword,
+              validator: RegisterValidators.password,
+              obscureText: obscurePassword,
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  obscurePassword ? Icons.visibility_off : Icons.visibility,
                   color: Colors.grey.shade400,
                   size: 20,
                 ),
-                onPressed: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
+                onPressed: onToggleObscurePassword,
               ),
-              textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 16),
-
-            // Confirm Password
-            _buildField(
+            _FormField(
               controller: confirmPasswordController,
-              label: tr.get('confirmPassword'),
+              label: 'Confirm Password',
               hint: '••••••••',
               icon: Icons.lock_outline,
-              validator: _validateConfirmPassword,
-              obscureText: _obscureConfirmPassword,
+              validator: RegisterValidators.confirmPassword(getPassword),
+              obscureText: obscureConfirmPassword,
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscureConfirmPassword
+                  obscureConfirmPassword
                       ? Icons.visibility_off
                       : Icons.visibility,
                   color: Colors.grey.shade400,
                   size: 20,
                 ),
-                onPressed: () => setState(
-                    () => _obscureConfirmPassword = !_obscureConfirmPassword),
+                onPressed: onToggleObscureConfirm,
               ),
-              textInputAction: TextInputAction.done,
             ),
             const SizedBox(height: 22),
-
-            // ── Greenhouse toggle ──
-            _buildGreenhouseToggle(tr),
+            _GreenhouseToggle(
+              value: hasGreenhouse,
+              onChanged: onToggleGreenhouse,
+            ),
             const SizedBox(height: 22),
-
-            // ── Map location picker ──
-            _buildLocationPicker(),
+            _LocationDetector(
+              farmLocation: farmLocation,
+              isDetecting: isDetectingLocation,
+              onTap: onDetectLocation,
+            ),
             const SizedBox(height: 28),
-
-            // ── Register button ──
-            _buildRegisterButton(tr),
+            _RegisterButton(
+              isLoading: isRegistering,
+              onTap: onRegister,
+            ),
             const SizedBox(height: 20),
-
-            // ── Login link ──
-            _buildLoginLink(tr),
+            _LoginLink(onTap: onGoToLogin),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    String? Function(String?)? validator,
-    bool obscureText = false,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    Widget? suffixIcon,
-  }) {
+class _FormField extends StatelessWidget {
+  const _FormField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    this.validator,
+    this.obscureText = false,
+    this.keyboardType,
+    this.suffixIcon,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final String? Function(String?)? validator;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+  final Widget? suffixIcon;
+
+  static const Color _primaryGreen = Color(0xFF1B5E20);
+  static const Color _softGreen = Color(0xFFE8F5E9);
+
+  @override
+  Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      textInputAction: textInputAction,
       validator: validator,
       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        labelStyle:
-            TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+        labelStyle: TextStyle(
+          color: Colors.grey.shade600,
+          fontWeight: FontWeight.w500,
+        ),
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
         prefixIcon: Container(
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: softGreen,
+            color: _softGreen,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: primaryGreen, size: 18),
+          child: Icon(icon, color: _primaryGreen, size: 18),
         ),
         suffixIcon: suffixIcon,
         filled: true,
@@ -837,7 +532,7 @@ class _RegisterPageState extends State<Register>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: primaryGreen, width: 2),
+          borderSide: const BorderSide(color: _primaryGreen, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -850,12 +545,24 @@ class _RegisterPageState extends State<Register>
       ),
     );
   }
+}
 
-  Widget _buildGreenhouseToggle(Translations tr) {
+class _GreenhouseToggle extends StatelessWidget {
+  const _GreenhouseToggle({required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  static const Color _primaryGreen = Color(0xFF1B5E20);
+  static const Color _lightGreen = Color(0xFF4CAF50);
+  static const Color _softGreen = Color(0xFFE8F5E9);
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: softGreen,
+        color: _softGreen,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -868,24 +575,24 @@ class _RegisterPageState extends State<Register>
               borderRadius: BorderRadius.circular(10),
             ),
             child:
-                const Icon(Icons.home_outlined, color: primaryGreen, size: 22),
+                const Icon(Icons.home_outlined, color: _primaryGreen, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  tr.get('hasGreenhouse'),
-                  style: const TextStyle(
+                const Text(
+                  'Do you have a greenhouse?',
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: primaryGreen,
+                    color: _primaryGreen,
                   ),
                 ),
                 Text(
-                  _hasGreenhouse
-                      ? "Yes, I own a greenhouse"
+                  value
+                      ? 'Yes, I own a greenhouse'
                       : "No, I don't have one yet",
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
@@ -893,24 +600,39 @@ class _RegisterPageState extends State<Register>
             ),
           ),
           Switch(
-            value: _hasGreenhouse,
-            onChanged: (value) => setState(() => _hasGreenhouse = value),
-            activeTrackColor: lightGreen.withValues(alpha: 0.4),
+            value: value,
+            onChanged: onChanged,
+            activeTrackColor: _lightGreen.withValues(alpha: 0.4),
             thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
-              if (states.contains(WidgetState.selected)) {
-                return primaryGreen;
-              }
-              return Colors.grey;
+              return states.contains(WidgetState.selected)
+                  ? _primaryGreen
+                  : Colors.grey;
             }),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildLocationPicker() {
-    final bool hasPicked = _pickedLocation != null;
+class _LocationDetector extends StatelessWidget {
+  const _LocationDetector({
+    required this.farmLocation,
+    required this.isDetecting,
+    required this.onTap,
+  });
 
+  final FarmLocation? farmLocation;
+  final bool isDetecting;
+  final VoidCallback onTap;
+
+  static const Color _primaryGreen = Color(0xFF1B5E20);
+  static const Color _softGreen = Color(0xFFE8F5E9);
+
+  bool get _hasLocation => farmLocation != null;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -924,16 +646,16 @@ class _RegisterPageState extends State<Register>
         ),
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: _openMapPicker,
+          onTap: isDetecting ? null : onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: hasPicked ? softGreen : Colors.grey.shade50,
+              color: _hasLocation ? _softGreen : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: hasPicked ? primaryGreen : Colors.grey.shade200,
-                width: hasPicked ? 2 : 1.5,
+                color: _hasLocation ? _primaryGreen : Colors.grey.shade200,
+                width: _hasLocation ? 2 : 1.5,
               ),
             ),
             child: Row(
@@ -941,16 +663,27 @@ class _RegisterPageState extends State<Register>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: hasPicked ? primaryGreen : Colors.grey.shade200,
+                    color: _hasLocation ? _primaryGreen : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    hasPicked
-                        ? Icons.location_on
-                        : Icons.add_location_alt_outlined,
-                    color: hasPicked ? Colors.white : Colors.grey.shade500,
-                    size: 20,
-                  ),
+                  child: isDetecting
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: _hasLocation ? Colors.white : Colors.grey,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Icon(
+                          _hasLocation
+                              ? Icons.location_on
+                              : Icons.location_on_outlined,
+                          color: _hasLocation
+                              ? Colors.white
+                              : Colors.grey.shade500,
+                          size: 20,
+                        ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -958,66 +691,72 @@ class _RegisterPageState extends State<Register>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        hasPicked
-                            ? 'Location selected'
-                            : 'Tap to pick location',
+                        _hasLocation
+                            ? 'Location detected'
+                            : 'Tap to detect location',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color:
-                              hasPicked ? primaryGreen : Colors.grey.shade500,
+                          color: _hasLocation
+                              ? _primaryGreen
+                              : Colors.grey.shade500,
                         ),
                       ),
-                      if (hasPicked) ...[
+                      if (_hasLocation) ...[
                         const SizedBox(height: 2),
                         Text(
-                          '${_pickedLocation!.latitude.toStringAsFixed(5)}, '
-                          '${_pickedLocation!.longitude.toStringAsFixed(5)}',
+                          farmLocation!.locationName,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: hasPicked ? primaryGreen : Colors.grey.shade400,
-                ),
+                if (!isDetecting)
+                  Icon(
+                    _hasLocation
+                        ? Icons.check_circle
+                        : Icons.chevron_right_rounded,
+                    color: _hasLocation ? _primaryGreen : Colors.grey.shade400,
+                  ),
               ],
             ),
           ),
         ),
-
-        // FIX: extracted into stateless widget with RepaintBoundary,
-        //      keyed by location so it only rebuilds when location changes
-        if (hasPicked) ...[
-          const SizedBox(height: 10),
-          _MiniMapPreview(
-            key: ValueKey(_pickedLocation),
-            location: _pickedLocation!,
-            onChangeTap: _openMapPicker,
-          ),
-        ],
       ],
     );
   }
+}
 
-  Widget _buildRegisterButton(Translations tr) {
+class _RegisterButton extends StatelessWidget {
+  const _RegisterButton({required this.isLoading, required this.onTap});
+
+  final bool isLoading;
+  final VoidCallback onTap;
+
+  static const Color _primaryGreen = Color(0xFF1B5E20);
+  static const Color _lightGreen = Color(0xFF4CAF50);
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       height: 54,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         gradient: const LinearGradient(
-          colors: [primaryGreen, lightGreen],
+          colors: [_primaryGreen, _lightGreen],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryGreen.withValues(alpha: 0.35),
+            color: _primaryGreen.withValues(alpha: 0.35),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -1026,7 +765,7 @@ class _RegisterPageState extends State<Register>
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: isLoading ? null : register,
+          onTap: isLoading ? null : onTap,
           borderRadius: BorderRadius.circular(16),
           child: Center(
             child: isLoading
@@ -1034,17 +773,19 @@ class _RegisterPageState extends State<Register>
                     width: 24,
                     height: 24,
                     child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2.5),
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
                   )
-                : Row(
+                : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.app_registration,
+                      Icon(Icons.app_registration,
                           color: Colors.white, size: 20),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10),
                       Text(
-                        tr.get('register'),
-                        style: const TextStyle(
+                        'Register',
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -1058,23 +799,32 @@ class _RegisterPageState extends State<Register>
       ),
     );
   }
+}
 
-  Widget _buildLoginLink(Translations tr) {
+class _LoginLink extends StatelessWidget {
+  const _LoginLink({required this.onTap});
+
+  final VoidCallback onTap;
+
+  static const Color _primaryGreen = Color(0xFF1B5E20);
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          tr.get('alreadyHaveAccount'),
+          'Already have an account?',
           style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
         ),
         GestureDetector(
-          onTap: () => Navigator.pushReplacementNamed(context, '/login'),
+          onTap: onTap,
           child: const Text(
             ' Login',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: primaryGreen,
+              color: _primaryGreen,
             ),
           ),
         ),

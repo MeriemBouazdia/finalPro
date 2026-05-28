@@ -1,0 +1,53 @@
+/* ─────────────────────────────────────────────────────────────
+   TABLE — Clean, Readable, Professional
+   ───────────────────────────────────────────────────────────── */
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.tbl th {
+  padding: 0.75rem 1.25rem;
+  text-align: left;
+  color: var(--text3);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  background: var(--surface2);
+  border-bottom: 1.5px solid var(--border);
+  animation: slideInDown 0.4s ease-out;
+}
+
+.tbl td {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border2);
+  color: var(--text2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tbl tr:last-child td { border-bottom: none; }
+
+.tbl tbody tr:hover td {
+  background: var(--surface2);
+  color: var(--text);
+  transform: scale(1.01);
+}
+
+.tbl tbody tr {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
