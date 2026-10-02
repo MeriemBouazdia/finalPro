@@ -14,25 +14,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
 
-// ─────────────────────────────────────────────
-// EmailJS
-// ─────────────────────────────────────────────
 const emailjs = window.emailjs;
 
 const EMAILJS_SERVICE_ID  = "service_pbp1mcs";
 const EMAILJS_TEMPLATE_ID = "template_px9nnfs";
 const EMAILJS_PUBLIC_KEY  = "wtYVdTSBfTL3UkriP";
 
-// ─────────────────────────────────────────────
-// Elements
-// ─────────────────────────────────────────────
 const message           = document.getElementById("message");
 const tempPasswordBox   = document.getElementById("tempPasswordBox");
 const tempPasswordValue = document.getElementById("tempPasswordValue");
 
-// ─────────────────────────────────────────────
-// Generate Temporary Password / OTP
-// ─────────────────────────────────────────────
 function generateTemporaryPassword() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
 
@@ -45,9 +36,6 @@ function generateTemporaryPassword() {
     .join("");
 }
 
-// ─────────────────────────────────────────────
-// Validation
-// ─────────────────────────────────────────────
 function validate(fieldId, inputId, condition) {
 
   const field = document.getElementById(fieldId);
@@ -85,9 +73,6 @@ document.getElementById("email").addEventListener("blur", () => {
 
 });
 
-// ─────────────────────────────────────────────
-// Submit Form
-// ─────────────────────────────────────────────
 document
   .getElementById("userForm")
   .addEventListener("submit", async (e) => {
@@ -101,9 +86,6 @@ document
     const email = document.getElementById("email").value.trim();
     const role  = document.getElementById("role").value;
 
-    // ─────────────────────────────────────────
-    // Validation
-    // ─────────────────────────────────────────
     const allValid = [
 
       validate(
@@ -128,9 +110,6 @@ document
       return;
     }
 
-    // ─────────────────────────────────────────
-    // Check Duplicate Email
-    // ─────────────────────────────────────────
     try {
 
       const existing = await get(
@@ -157,9 +136,7 @@ document
 
     }
 
-    // ─────────────────────────────────────────
-    // Start
-    // ─────────────────────────────────────────
+   
     message.textContent = " Creating user...";
     message.style.color = "#1b6b57";
 
@@ -168,9 +145,7 @@ document
 
     try {
 
-      // ───────────────────────────────────────
-      // 1. Create Firebase User
-      // ───────────────────────────────────────
+     
       const { user } =
         await createUserWithEmailAndPassword(
           auth,
@@ -178,9 +153,7 @@ document
           temporaryPassword
         );
 
-      // ───────────────────────────────────────
-      // 2. Save User In Database
-      // ───────────────────────────────────────
+     
       await set(
         ref(database, "users/" + user.uid),
         {
@@ -194,9 +167,7 @@ document
         }
       );
 
-      // ───────────────────────────────────────
-      // 3. Send Email
-      // ───────────────────────────────────────
+     
       await emailjs.send(
 
         EMAILJS_SERVICE_ID,

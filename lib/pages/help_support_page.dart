@@ -1,81 +1,189 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../pages/widget/theme_provider.dart';
+import 'package:app/l10n/translations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-void main() => runApp(const _Preview());
-
-class _Preview extends StatelessWidget {
-  const _Preview();
-  @override
-  Widget build(BuildContext context) => MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF2E7D32),
-          useMaterial3: true,
+Future<void> openWhatsApp(BuildContext context) async {
+  const phone = '[0656977376]';
+  const message = 'Hello, I need help with the Smart Greenhouse application.';
+  final uri =
+      Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } else {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(Translations.of(context).get('whatsappError')),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          duration: const Duration(seconds: 3),
         ),
-        home: const HelpSupportPage(),
       );
+    }
+  }
 }
+
+Future<void> sendEmail(BuildContext context) async {
+  const email = '[bouazdiameriem9@gmail.com]';
+  const subject = 'Smart Greenhouse Support';
+  const body =
+      'Hello Support Team,\n\nI need assistance with the Smart Greenhouse application.\n\nThank you.';
+  final uri = Uri(
+    scheme: 'mailto',
+    path: email,
+    query:
+        'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
+  );
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } else {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(Translations.of(context).get('emailError')),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+//  COLOR HELPER
+// ─────────────────────────────────────────────
 
 class _C {
-  static const deepGreen = Color(0xFF1B5E20);
-  static const midGreen = Color(0xFF2E7D32);
-  static const brightGreen = Color(0xFF43A047);
-  static const lightGreen = Color(0xFFA5D6A7);
-  static const mintBg = Color(0xFFF1F8F1);
-  static const cardBg = Color(0xFFFFFFFF);
-  static const textDark = Color(0xFF1A2E1A);
-  static const textMid = Color(0xFF4A6741);
-  static const textSoft = Color(0xFF7A9B77);
+  final bool isDark;
+  const _C(this.isDark);
+
+  Color get deepGreen => const Color(0xFF336A29);
+  Color get midGreen => const Color(0xFF336A29);
+  Color get brightGreen => const Color(0xFF43A047);
+  Color get lightGreen => const Color(0xFFA5D6A7);
+
+  Color get mintBg =>
+      isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5);
+  Color get cardBg => isDark ? const Color(0xFF2C2C2C) : Colors.white;
+
+  Color get textDark => isDark ? Colors.white : const Color(0xFF1A2E1A);
+  Color get textMid => isDark ? Colors.white70 : const Color(0xFF4A6741);
+  Color get textSoft => isDark ? Colors.white54 : const Color(0xFF7A9B77);
+
+  Color get faqDivider =>
+      isDark ? const Color(0xFF3A3A3A) : lightGreen.withOpacity(0.3);
+  Color get faqIconBg =>
+      isDark ? const Color(0xFF3A3A3A) : lightGreen.withOpacity(0.4);
+
+  Color get cardShadow =>
+      isDark ? Colors.black45 : const Color(0xFF336A29).withOpacity(0.08);
+  Color get tipGradientStart =>
+      isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE8F5E9);
+  Color get tipGradientEnd =>
+      isDark ? const Color(0xFF2C2C2C) : const Color(0xFFC8E6C9);
+  Color get tipBorder =>
+      isDark ? const Color(0xFF3A3A3A) : lightGreen.withOpacity(0.6);
+  Color get sectionIconBg =>
+      isDark ? const Color(0xFF3A3A3A) : lightGreen.withOpacity(0.5);
+  Color get divider =>
+      isDark ? const Color(0xFF3A3A3A) : const Color(0xFFE0E0E0);
 }
+
+// ─────────────────────────────────────────────
+//  MAIN PAGE
+// ─────────────────────────────────────────────
 
 class HelpSupportPage extends StatelessWidget {
   const HelpSupportPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
+    final isDark = context.watch<ThemeProvider>().isDarkMode;
+    final c = _C(isDark);
+
     return Scaffold(
-      backgroundColor: _C.mintBg,
+      backgroundColor: c.mintBg,
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.help_outline_rounded,
+                  color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              tr.get('helpSupport'),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: false,
+        backgroundColor:
+            isDark ? const Color(0xFF1E1E1E) : const Color(0xFF336A29),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 2,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.white, size: 20),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(
+              height: 1, color: Colors.white.withOpacity(isDark ? 0.08 : 0.18)),
+        ),
+      ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── 1. Header ────────────────────────────────────────────────────
-          SliverToBoxAdapter(child: _Header()),
-
-          // ── 2. Quick Help Cards ──────────────────────────────────────────
+          SliverToBoxAdapter(child: _HeroBanner(c: c)),
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
           SliverToBoxAdapter(
             child: _SectionLabel(
-              icon: Icons.bolt_rounded,
-              label: 'Quick Help',
-            ),
+                icon: Icons.bolt_rounded, label: tr.get('quickHelp'), c: c),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 14)),
-          const SliverToBoxAdapter(child: _QuickHelpGrid()),
-
-          // ── 3. FAQ ───────────────────────────────────────────────────────
+          SliverToBoxAdapter(child: _QuickHelpGrid(c: c)),
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
           SliverToBoxAdapter(
             child: _SectionLabel(
-              icon: Icons.help_outline_rounded,
-              label: 'Frequently Asked Questions',
-            ),
+                icon: Icons.help_outline_rounded,
+                label: tr.get('faqTitle'),
+                c: c),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 14)),
-          const SliverToBoxAdapter(child: _FaqSection()),
-
-          // ── 4. Contact Support ───────────────────────────────────────────
+          SliverToBoxAdapter(child: _FaqSection(c: c)),
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
           SliverToBoxAdapter(
             child: _SectionLabel(
-              icon: Icons.support_agent_rounded,
-              label: 'Contact Support',
-            ),
+                icon: Icons.support_agent_rounded,
+                label: tr.get('contactSupport'),
+                c: c),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 14)),
-          const SliverToBoxAdapter(child: _ContactSection()),
-
-          // ── 5. Tip card ──────────────────────────────────────────────────
+          SliverToBoxAdapter(child: _ContactSection(c: c)),
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
-          const SliverToBoxAdapter(child: _TipCard()),
+          SliverToBoxAdapter(child: _TipCard(c: c)),
           const SliverToBoxAdapter(child: SizedBox(height: 40)),
         ],
       ),
@@ -83,131 +191,86 @@ class HelpSupportPage extends StatelessWidget {
   }
 }
 
-// ─── 1. Header ───────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+//  HERO BANNER
+// ─────────────────────────────────────────────
 
-class _Header extends StatelessWidget {
+class _HeroBanner extends StatelessWidget {
+  final _C c;
+  const _HeroBanner({required this.c});
+
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.of(context).padding.top;
+    final tr = Translations.of(context);
     return Container(
-      padding: EdgeInsets.fromLTRB(24, top + 16, 24, 36),
-      decoration: const BoxDecoration(
+      margin: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_C.deepGreen, _C.brightGreen],
+          colors: c.isDark
+              ? [const Color(0xFF1E1E1E), const Color(0xFF2C2C2C)]
+              : [const Color(0xFF336A29), const Color(0xFF43A047)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(36),
-          bottomRight: Radius.circular(36),
-        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF336A29).withOpacity(c.isDark ? 0.15 : 0.28),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Decorative leaf blobs
           Positioned(
-            right: -20,
+            right: -10,
             top: -10,
-            child: _LeafBlob(size: 120, opacity: 0.12),
+            child: _LeafBlob(size: 110, opacity: c.isDark ? 0.06 : 0.12),
           ),
           Positioned(
-            left: -30,
-            bottom: -20,
-            child: _LeafBlob(size: 90, opacity: 0.08),
+            left: -20,
+            bottom: -10,
+            child: _LeafBlob(size: 80, opacity: c.isDark ? 0.04 : 0.08),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              // Back button + page label
-              Row(
-                children: [
-                  _GlassButton(
-                    icon: Icons.arrow_back_ios_new_rounded,
-                    onTap: () => Navigator.of(context).maybePop(),
-                  ),
-                  const SizedBox(width: 14),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Help & Support',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-
-              // Icon circle
               Container(
-                width: 64,
-                height: 64,
+                width: 58,
+                height: 58,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withOpacity(0.18),
                   shape: BoxShape.circle,
                   border: Border.all(
-                      color: Colors.white.withOpacity(0.4), width: 1.5),
+                      color: Colors.white.withOpacity(0.35), width: 1.5),
                 ),
                 child: const Icon(Icons.eco_rounded,
-                    color: Colors.white, size: 32),
+                    color: Colors.white, size: 28),
               ),
-              const SizedBox(height: 18),
-
-              const Text(
-                'Help & Support',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  height: 1.1,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "We're here to help you manage\nyour smart greenhouse",
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.82),
-                  fontSize: 15,
-                  height: 1.55,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Search bar (cosmetic)
-              Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.92),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _C.deepGreen.withOpacity(0.18),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Row(
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(width: 16),
-                    Icon(Icons.search_rounded, color: _C.textSoft, size: 20),
-                    const SizedBox(width: 10),
                     Text(
-                      'Search for help…',
-                      style: TextStyle(color: _C.textSoft, fontSize: 14),
+                      tr.get('helpSupport'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tr.get('heroBannerSubtitle'),
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.80),
+                        fontSize: 12.5,
+                        height: 1.5,
+                      ),
                     ),
                   ],
                 ),
@@ -220,7 +283,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// Decorative leaf shape
 class _LeafBlob extends StatelessWidget {
   final double size;
   final double opacity;
@@ -247,35 +309,16 @@ class _LeafBlob extends StatelessWidget {
   }
 }
 
-class _GlassButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  const _GlassButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.18),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-        ),
-        child: Icon(icon, color: Colors.white, size: 18),
-      ),
-    );
-  }
-}
-
-// ─── Section label ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+//  SECTION LABEL
+// ─────────────────────────────────────────────
 
 class _SectionLabel extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _SectionLabel({required this.icon, required this.label});
+  final _C c;
+  const _SectionLabel(
+      {required this.icon, required this.label, required this.c});
 
   @override
   Widget build(BuildContext context) {
@@ -286,18 +329,18 @@ class _SectionLabel extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: _C.lightGreen.withOpacity(0.5),
+              color: c.sectionIconBg,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: _C.midGreen, size: 16),
+            child: Icon(icon, color: c.midGreen, size: 16),
           ),
           const SizedBox(width: 10),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: _C.textDark,
+              color: c.textDark,
               letterSpacing: -0.2,
             ),
           ),
@@ -307,85 +350,77 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-// ─── 2. Quick Help Grid ───────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+//  QUICK HELP GRID
+// ─────────────────────────────────────────────
 
 class _QuickHelpGrid extends StatelessWidget {
-  const _QuickHelpGrid();
-
-  static const _items = [
-    _HelpItem(
-      emoji: '🌱',
-      icon: Icons.spa_rounded,
-      title: 'Getting Started',
-      subtitle: 'Setup your greenhouse in minutes',
-      route: '/help/getting-started',
-      gradientStart: Color(0xFF66BB6A),
-      gradientEnd: Color(0xFF2E7D32),
-    ),
-    _HelpItem(
-      emoji: '🌡️',
-      icon: Icons.thermostat_rounded,
-      title: 'Sensors Guide',
-      subtitle: 'Understand temperature, humidity & soil',
-      route: '/help/sensors',
-      gradientStart: Color(0xFF26C6DA),
-      gradientEnd: Color(0xFF00838F),
-    ),
-    _HelpItem(
-      emoji: '🚰',
-      icon: Icons.water_drop_rounded,
-      title: 'Actuator Control',
-      subtitle: 'Pump, fan & vent management',
-      route: '/help/actuators',
-      gradientStart: Color(0xFF42A5F5),
-      gradientEnd: Color(0xFF1565C0),
-    ),
-    _HelpItem(
-      emoji: '🔔',
-      icon: Icons.notifications_active_rounded,
-      title: 'Notifications',
-      subtitle: 'Alerts and smart triggers',
-      route: '/help/notifications',
-      gradientStart: Color(0xFFFFCA28),
-      gradientEnd: Color(0xFFE65100),
-    ),
-    _HelpItem(
-      emoji: '🤖',
-      icon: Icons.smart_toy_rounded,
-      title: 'AI Chatbot Help',
-      subtitle: 'Let AI guide your farming decisions',
-      route: '/help/chatbot',
-      gradientStart: Color(0xFFAB47BC),
-      gradientEnd: Color(0xFF4A148C),
-    ),
-  ];
+  final _C c;
+  const _QuickHelpGrid({required this.c});
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
+
+    final items = [
+      _HelpItem(
+        icon: Icons.spa_rounded,
+        title: tr.get('qhGettingStarted'),
+        subtitle: tr.get('qhGettingStartedSub'),
+        gradientStart: const Color(0xFF66BB6A),
+        gradientEnd: const Color(0xFF2E7D32),
+      ),
+      _HelpItem(
+        icon: Icons.thermostat_rounded,
+        title: tr.get('qhSensorsGuide'),
+        subtitle: tr.get('qhSensorsGuideSub'),
+        gradientStart: const Color(0xFF26C6DA),
+        gradientEnd: const Color(0xFF00838F),
+      ),
+      _HelpItem(
+        icon: Icons.water_drop_rounded,
+        title: tr.get('qhActuatorControl'),
+        subtitle: tr.get('qhActuatorControlSub'),
+        gradientStart: const Color(0xFF42A5F5),
+        gradientEnd: const Color(0xFF1565C0),
+      ),
+      _HelpItem(
+        icon: Icons.notifications_active_rounded,
+        title: tr.get('qhNotifications'),
+        subtitle: tr.get('qhNotificationsSub'),
+        gradientStart: const Color(0xFFFFCA28),
+        gradientEnd: const Color(0xFFE65100),
+      ),
+      _HelpItem(
+        icon: Icons.smart_toy_rounded,
+        title: tr.get('qhAiChatbot'),
+        subtitle: tr.get('qhAiChatbotSub'),
+        gradientStart: const Color(0xFFAB47BC),
+        gradientEnd: const Color(0xFF4A148C),
+      ),
+    ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // First row: 2 cards
           Row(
             children: [
-              Expanded(child: _HelpCard(item: _items[0])),
+              Expanded(child: _HelpCard(item: items[0], c: c)),
               const SizedBox(width: 12),
-              Expanded(child: _HelpCard(item: _items[1])),
+              Expanded(child: _HelpCard(item: items[1], c: c)),
             ],
           ),
           const SizedBox(height: 12),
-          // Second row: 2 cards
           Row(
             children: [
-              Expanded(child: _HelpCard(item: _items[2])),
+              Expanded(child: _HelpCard(item: items[2], c: c)),
               const SizedBox(width: 12),
-              Expanded(child: _HelpCard(item: _items[3])),
+              Expanded(child: _HelpCard(item: items[3], c: c)),
             ],
           ),
           const SizedBox(height: 12),
-          // Last card: full width
-          _HelpCardWide(item: _items[4]),
+          _HelpCardWide(item: items[4], c: c),
         ],
       ),
     );
@@ -393,19 +428,15 @@ class _QuickHelpGrid extends StatelessWidget {
 }
 
 class _HelpItem {
-  final String emoji;
   final IconData icon;
   final String title;
   final String subtitle;
-  final String route;
   final Color gradientStart;
   final Color gradientEnd;
   const _HelpItem({
-    required this.emoji,
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.route,
     required this.gradientStart,
     required this.gradientEnd,
   });
@@ -413,20 +444,21 @@ class _HelpItem {
 
 class _HelpCard extends StatelessWidget {
   final _HelpItem item;
-  const _HelpCard({required this.item});
+  final _C c;
+  const _HelpCard({required this.item, required this.c});
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
-          // Navigator.pushNamed(context, item.route);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Opening ${item.title}…'),
-              backgroundColor: _C.midGreen,
+              content: Text('${tr.get('opening')} ${item.title}…'),
+              backgroundColor: c.midGreen,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
@@ -437,11 +469,11 @@ class _HelpCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: _C.cardBg,
+            color: c.cardBg,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: item.gradientEnd.withOpacity(0.12),
+                color: c.cardShadow,
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -466,19 +498,19 @@ class _HelpCard extends StatelessWidget {
               const SizedBox(height: 14),
               Text(
                 item.title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: _C.textDark,
+                  color: c.textDark,
                   height: 1.2,
                 ),
               ),
               const SizedBox(height: 5),
               Text(
                 item.subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11.5,
-                  color: _C.textSoft,
+                  color: c.textSoft,
                   height: 1.4,
                 ),
               ),
@@ -486,7 +518,7 @@ class _HelpCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Learn more',
+                    tr.get('learnMore'),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -508,7 +540,8 @@ class _HelpCard extends StatelessWidget {
 
 class _HelpCardWide extends StatelessWidget {
   final _HelpItem item;
-  const _HelpCardWide({required this.item});
+  final _C c;
+  const _HelpCardWide({required this.item, required this.c});
 
   @override
   Widget build(BuildContext context) {
@@ -588,50 +621,50 @@ class _HelpCardWide extends StatelessWidget {
   }
 }
 
-// ─── 3. FAQ Section ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+//  FAQ SECTION
+// ─────────────────────────────────────────────
 
 class _FaqSection extends StatelessWidget {
-  const _FaqSection();
-
-  static const _faqs = [
-    _FaqItem(
-      question: 'How do sensors work?',
-      answer:
-          'Your greenhouse sensors measure temperature, humidity, soil moisture, and light in real-time. They send readings to the app every few seconds via Wi-Fi. If a reading crosses the target threshold, the app alerts you instantly.',
-    ),
-    _FaqItem(
-      question: 'How do I set target values?',
-      answer:
-          'Go to the Configuration page and enter your desired temperature and soil moisture targets. The system will automatically compare live sensor data against these values and trigger alerts or automatic actions when thresholds are exceeded.',
-    ),
-    _FaqItem(
-      question: 'Why am I receiving alerts?',
-      answer:
-          'Alerts fire when a sensor reading goes above your configured target. For example, if temperature exceeds your target, you\'ll get a "🌡️ High Temperature Alert". Check your targets in the Configuration page if alerts feel too frequent.',
-    ),
-    _FaqItem(
-      question: 'How to control pump/fan manually or automatically?',
-      answer:
-          'On the Home page, use the Device Control section. Toggle the mode switch to "Manual" to control each device (pump, fan, vent, light) yourself. Switch to "Automatic" and the system controls them based on your sensor targets.',
-    ),
-    _FaqItem(
-      question: 'How does the AI chatbot help farmers?',
-      answer:
-          'The AI chatbot gives personalized advice based on your greenhouse data. Ask it anything — from crop care tips to interpreting sensor readings. It learns your greenhouse\'s patterns over time to give increasingly relevant suggestions.',
-    ),
-  ];
+  final _C c;
+  const _FaqSection({required this.c});
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
+
+    final faqs = [
+      _FaqItem(
+        question: tr.get('faq1Q'),
+        answer: tr.get('faq1A'),
+      ),
+      _FaqItem(
+        question: tr.get('faq2Q'),
+        answer: tr.get('faq2A'),
+      ),
+      _FaqItem(
+        question: tr.get('faq3Q'),
+        answer: tr.get('faq3A'),
+      ),
+      _FaqItem(
+        question: tr.get('faq4Q'),
+        answer: tr.get('faq4A'),
+      ),
+      _FaqItem(
+        question: tr.get('faq5Q'),
+        answer: tr.get('faq5A'),
+      ),
+    ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: _C.cardBg,
+          color: c.cardBg,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: _C.midGreen.withOpacity(0.08),
+              color: c.cardShadow,
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),
@@ -640,16 +673,16 @@ class _FaqSection extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: Column(
-            children: List.generate(_faqs.length, (i) {
-              final isLast = i == _faqs.length - 1;
+            children: List.generate(faqs.length, (i) {
+              final isLast = i == faqs.length - 1;
               return Column(
                 children: [
-                  _FaqTile(item: _faqs[i]),
+                  _FaqTile(item: faqs[i], c: c),
                   if (!isLast)
                     Divider(
                       height: 1,
                       thickness: 1,
-                      color: _C.lightGreen.withOpacity(0.3),
+                      color: c.faqDivider,
                       indent: 20,
                       endIndent: 20,
                     ),
@@ -671,7 +704,9 @@ class _FaqItem {
 
 class _FaqTile extends StatefulWidget {
   final _FaqItem item;
-  const _FaqTile({required this.item});
+  final _C c;
+  const _FaqTile({required this.item, required this.c});
+
   @override
   State<_FaqTile> createState() => _FaqTileState();
 }
@@ -687,12 +722,9 @@ class _FaqTileState extends State<_FaqTile>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 280),
-    );
-    _rotate = Tween<double>(begin: 0, end: 0.5).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
+        vsync: this, duration: const Duration(milliseconds: 280));
+    _rotate = Tween<double>(begin: 0, end: 0.5)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
   }
 
@@ -709,6 +741,7 @@ class _FaqTileState extends State<_FaqTile>
 
   @override
   Widget build(BuildContext context) {
+    final c = widget.c;
     return InkWell(
       onTap: _toggle,
       child: Padding(
@@ -722,15 +755,13 @@ class _FaqTileState extends State<_FaqTile>
                   width: 28,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: _expanded
-                        ? _C.midGreen
-                        : _C.lightGreen.withOpacity(0.4),
+                    color: _expanded ? c.midGreen : c.faqIconBg,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.eco_rounded,
                     size: 14,
-                    color: _expanded ? Colors.white : _C.midGreen,
+                    color: _expanded ? Colors.white : c.midGreen,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -740,7 +771,7 @@ class _FaqTileState extends State<_FaqTile>
                     style: TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w600,
-                      color: _expanded ? _C.midGreen : _C.textDark,
+                      color: _expanded ? c.midGreen : c.textDark,
                       height: 1.3,
                     ),
                   ),
@@ -750,7 +781,7 @@ class _FaqTileState extends State<_FaqTile>
                   turns: _rotate,
                   child: Icon(
                     Icons.keyboard_arrow_down_rounded,
-                    color: _expanded ? _C.midGreen : _C.textSoft,
+                    color: _expanded ? c.midGreen : c.textSoft,
                     size: 22,
                   ),
                 ),
@@ -764,9 +795,9 @@ class _FaqTileState extends State<_FaqTile>
                   padding: const EdgeInsets.only(top: 12, left: 40),
                   child: Text(
                     widget.item.answer,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13.5,
-                      color: _C.textMid,
+                      color: c.textMid,
                       height: 1.65,
                     ),
                   ),
@@ -780,23 +811,27 @@ class _FaqTileState extends State<_FaqTile>
   }
 }
 
-// ─── 4. Contact Support ───────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+//  CONTACT SECTION
+// ─────────────────────────────────────────────
 
 class _ContactSection extends StatelessWidget {
-  const _ContactSection();
+  final _C c;
+  const _ContactSection({required this.c});
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: _C.cardBg,
+          color: c.cardBg,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: _C.midGreen.withOpacity(0.08),
+              color: c.cardShadow,
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),
@@ -804,27 +839,26 @@ class _ContactSection extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Illustration row
             Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Still need help?',
+                      Text(
+                        tr.get('stillNeedHelp'),
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: _C.textDark,
+                          color: c.textDark,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Our support team is\navailable 7 days a week.',
+                        tr.get('supportAvailability'),
                         style: TextStyle(
                           fontSize: 13,
-                          color: _C.textSoft,
+                          color: c.textSoft,
                           height: 1.5,
                         ),
                       ),
@@ -835,8 +869,8 @@ class _ContactSection extends StatelessWidget {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [_C.lightGreen, _C.brightGreen],
+                    gradient: LinearGradient(
+                      colors: [c.lightGreen, c.brightGreen],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -848,41 +882,39 @@ class _ContactSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-
-            // Buttons
             _ContactButton(
               icon: Icons.email_outlined,
-              label: 'Contact Support',
+              label: tr.get('contactSupportBtn'),
               isPrimary: true,
-              onTap: () {},
+              c: c,
+              onTap: () => sendEmail(context),
             ),
             const SizedBox(height: 10),
             _ContactButton(
               icon: Icons.bug_report_outlined,
-              label: 'Report a Problem',
+              label: tr.get('reportProblem'),
               isPrimary: false,
-              onTap: () {},
+              c: c,
+              onTap: () => sendEmail(context),
             ),
             const SizedBox(height: 10),
-
-            // Secondary links row
             Row(
               children: [
                 Expanded(
                   child: _SmallContactLink(
                     icon: Icons.chat_bubble_outline_rounded,
-                    label: 'WhatsApp',
+                    label: tr.get('whatsapp'),
                     color: const Color(0xFF25D366),
-                    onTap: () {},
+                    onTap: () => openWhatsApp(context),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: _SmallContactLink(
                     icon: Icons.mail_outline_rounded,
-                    label: 'Email Us',
-                    color: _C.brightGreen,
-                    onTap: () {},
+                    label: tr.get('emailUs'),
+                    color: c.brightGreen,
+                    onTap: () => sendEmail(context),
                   ),
                 ),
               ],
@@ -898,12 +930,14 @@ class _ContactButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isPrimary;
+  final _C c;
   final VoidCallback onTap;
 
   const _ContactButton({
     required this.icon,
     required this.label,
     required this.isPrimary,
+    required this.c,
     required this.onTap,
   });
 
@@ -916,34 +950,28 @@ class _ContactButton extends StatelessWidget {
           ? ElevatedButton.icon(
               onPressed: onTap,
               icon: Icon(icon, size: 18),
-              label: Text(
-                label,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-              ),
+              label: Text(label,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 14)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _C.midGreen,
+                backgroundColor: c.midGreen,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
+                    borderRadius: BorderRadius.circular(25)),
                 elevation: 0,
               ),
             )
           : OutlinedButton.icon(
               onPressed: onTap,
               icon: Icon(icon, size: 18),
-              label: Text(
-                label,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-              ),
+              label: Text(label,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 14)),
               style: OutlinedButton.styleFrom(
-                foregroundColor: _C.midGreen,
-                side: const BorderSide(color: _C.midGreen, width: 1.5),
+                foregroundColor: c.midGreen,
+                side: BorderSide(color: c.midGreen, width: 1.5),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
+                    borderRadius: BorderRadius.circular(25)),
               ),
             ),
     );
@@ -994,25 +1022,29 @@ class _SmallContactLink extends StatelessWidget {
   }
 }
 
-// ─── 5. Tip Card ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+//  TIP CARD
+// ─────────────────────────────────────────────
 
 class _TipCard extends StatelessWidget {
-  const _TipCard();
+  final _C c;
+  const _TipCard({required this.c});
 
   @override
   Widget build(BuildContext context) {
+    final tr = Translations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+          gradient: LinearGradient(
+            colors: [c.tipGradientStart, c.tipGradientEnd],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _C.lightGreen.withOpacity(0.6), width: 1),
+          border: Border.all(color: c.tipBorder, width: 1),
         ),
         child: Row(
           children: [
@@ -1020,7 +1052,7 @@ class _TipCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: _C.midGreen.withOpacity(0.12),
+                color: c.midGreen.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
               child: const Text(
@@ -1033,22 +1065,22 @@ class _TipCard extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
-                    'Farmer\'s Tip',
+                    tr.get('farmersTip'),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: _C.brightGreen,
+                      color: c.brightGreen,
                       letterSpacing: 0.5,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Keep your soil balanced for healthier crops — consistent moisture prevents root stress and boosts yield 🌾',
+                    tr.get('farmersTipBody'),
                     style: TextStyle(
                       fontSize: 13,
-                      color: _C.textMid,
+                      color: c.textMid,
                       height: 1.5,
                     ),
                   ),

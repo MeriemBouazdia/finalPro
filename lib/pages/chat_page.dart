@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import '../services/greenhouse_chat_service.dart';
+import '../services/ai_service.dart';
 import '../pages/widget/theme_provider.dart';
 
 class ChatMessage {
@@ -27,15 +28,11 @@ class CropItem {
       CropItem(id: j['id'] as String, name: j['name'] as String);
 }
 
-// ─────────────────────────────────────────────
-//  API
-// ─────────────────────────────────────────────
-
 class AgriApiService {
   static const _timeout = Duration(seconds: 10);
   static const List<String> _hosts = [
-    'http://192.168.1.5:5000',
-    'http://192.168.1.1:5000',
+    'http://192.168.43.237:5000',
+    'http://192.168.1.7:5000',
   ];
 
   static Future<http.Response?> _tryHosts(
@@ -48,18 +45,6 @@ class AgriApiService {
       } catch (_) {}
     }
     return null;
-  }
-
-  static Future<Map<String, dynamic>?> ask(String question, String lang) async {
-    final resp = await _tryHosts(
-      (base) => http.post(
-        Uri.parse('$base/api/ask'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'question': question, 'language': lang}),
-      ),
-    );
-    if (resp == null || resp.statusCode != 200) return null;
-    return jsonDecode(resp.body) as Map<String, dynamic>;
   }
 
   static Future<List<CropItem>> fetchCrops(String lang) async {
@@ -440,6 +425,7 @@ class _BotPageState extends State<BotPage> {
   String _lang = 'en';
 
   final _chatService = GreenhouseChatService();
+  final _aiService = AiService();
 
   @override
   void initState() {
@@ -527,20 +513,39 @@ class _BotPageState extends State<BotPage> {
 
   Future<void> _sendMessage(String text) async {
     final q = text.trim();
+
     if (q.isEmpty || _isLoading) return;
+
     _inputController.clear();
+
     _addMessage(q, isUser: true);
+
     setState(() => _isLoading = true);
 
-    final result = await AgriApiService.ask(q, _lang);
-    setState(() => _isLoading = false);
+    try {
+      final answer = await _aiService.askQuestion(q);
 
-    _addMessage(
-      result != null
-          ? result['answer'] as String
-          : _Strings.get('serverError', _lang),
-      isUser: false,
-    );
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      _addMessage(answer, isUser: false);
+    } on AiServiceException catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      _addMessage(e.message, isUser: false);
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      _addMessage(
+        _Strings.get('serverError', _lang),
+        isUser: false,
+      );
+    }
   }
 
   Future<void> _showCropDetail(CropItem crop) async {

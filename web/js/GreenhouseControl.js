@@ -20,23 +20,18 @@ function readSensorValue(node) {
  */
 function readSensorTime(node, fallbackUpdatedAt) {
   if (node && typeof node === 'object' && node.time != null) {
-    // "time" is a Unix-second offset stored by the MCU — show it as a relative label
     return `t=${node.time}s`;
   }
   if (fallbackUpdatedAt) return fallbackUpdatedAt;
   return new Date().toLocaleTimeString();
 }
 
-// ============================================================================
-// STATE
-// ============================================================================
 
 const state = {
   uid:   null,
   ghId:  null,
   mode:  'auto',
 
-  // Normalised sensor values (always plain numbers after mapping)
   sensors: {
     temperature:  null,
     humidity:     null,
@@ -45,7 +40,6 @@ const state = {
     light:        null,
   },
 
-  // Per-sensor timestamps
   sensorTimes: {
     temperature:  '—',
     humidity:     '—',
@@ -54,27 +48,21 @@ const state = {
     light:        '—',
   },
 
-  updatedAt: null,   // sensors-level ISO timestamp
+  updatedAt: null,
 
   actuators: { pump: false, fan: false, light: false, vent: false },
   targets:   { temperature: 22, soil: 60 },
   connected: false,
 };
 
-// Active Firebase listeners — stored so we can detach when going back
 const _listeners = [];
 
-// ============================================================================
-// SENSOR DISPLAY CONFIG
-// key       = the key we use in state.sensors (matches Firebase key exactly)
-// fbKey     = Firebase key under sensors/ (same here, kept explicit for clarity)
-// ============================================================================
-
+// Each sensor now stores a Font Awesome icon class string instead of an emoji
 const sensorConfig = [
   {
     key: 'temperature',
     label: 'Temperature',
-    icon: '🌡️',
+    icon: 'fa-solid fa-temperature-half',
     unit: '°C',
     decimals: 1,
     min: 15, max: 30,
@@ -83,7 +71,7 @@ const sensorConfig = [
   {
     key: 'humidity',
     label: 'Humidity',
-    icon: '💧',
+    icon: 'fa-solid fa-droplet',
     unit: '%',
     decimals: 1,
     min: 40, max: 80,
@@ -92,35 +80,22 @@ const sensorConfig = [
   {
     key: 'soil',
     label: 'Soil (raw)',
-    icon: '🌱',
+    icon: 'fa-solid fa-seedling',
     unit: '',
     decimals: 0,
     min: 100, max: 800,
     criticalLow: 0, criticalHigh: 1023,
   },
   {
-    key: 'soil_moisture',
-    label: 'Soil Moisture',
-    icon: '🪴',
-    unit: '%',
-    decimals: 0,
-    min: 20, max: 80,
-    criticalLow: 0, criticalHigh: 100,
-  },
-  {
     key: 'light',
     label: 'Light',
-    icon: '☀️',
+    icon: 'fa-solid fa-sun',
     unit: 'lux',
     decimals: 0,
     min: 200, max: 1000,
     criticalLow: 0, criticalHigh: 2000,
   },
 ];
-
-// ============================================================================
-// ENTRY POINT
-// ============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
@@ -137,10 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('gh-search')?.addEventListener('input', filterCards);
 });
 
-// ============================================================================
-// SCREEN TOGGLE
-// ============================================================================
-
 function showSelector() {
   teardownListeners();
   document.getElementById('selector-screen').style.display = 'flex';
@@ -153,10 +124,6 @@ function showControl() {
   document.getElementById('control-screen').style.display  = 'block';
 }
 
-// ============================================================================
-// FETCH ALL GREENHOUSES → BUILD PICKER
-// ============================================================================
-
 let _allCards = [];
 
 async function fetchAllGreenhouses() {
@@ -168,7 +135,9 @@ async function fetchAllGreenhouses() {
     if (!snapshot.exists()) {
       grid.innerHTML = `
         <div class="gh-picker-empty">
-          <div class="gh-picker-empty-icon">🌿</div>
+          <div class="gh-picker-empty-icon">
+            <i class="fa-solid fa-leaf"></i>
+          </div>
           <div>No greenhouses found.</div>
         </div>`;
       return;
@@ -199,7 +168,9 @@ async function fetchAllGreenhouses() {
     console.error('Error fetching greenhouses:', err);
     grid.innerHTML = `
       <div class="gh-picker-empty">
-        <div class="gh-picker-empty-icon">⚠️</div>
+        <div class="gh-picker-empty-icon gh-picker-empty-icon--warning">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
         <div>Failed to load greenhouses. Check Firebase permissions.</div>
       </div>`;
   }
@@ -212,7 +183,9 @@ function renderCards(cards) {
   if (cards.length === 0) {
     grid.innerHTML = `
       <div class="gh-picker-empty">
-        <div class="gh-picker-empty-icon">🔍</div>
+        <div class="gh-picker-empty-icon">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
         <div>No greenhouses match your search.</div>
       </div>`;
     return;
@@ -228,9 +201,14 @@ function renderCards(cards) {
           <polyline points="9 18 15 12 9 6"/>
         </svg>
       </div>
-      <div class="gh-picker-icon">🌿</div>
+      <div class="gh-picker-icon">
+        <i class="fa-solid fa-leaf"></i>
+      </div>
       <div class="gh-picker-name">${escapeHtml(card.ghName)}</div>
-      <div class="gh-picker-meta">📍 ${escapeHtml(card.location)}</div>
+      <div class="gh-picker-meta">
+        <i class="fa-solid fa-location-dot"></i>
+        ${escapeHtml(card.location)}
+      </div>
       <div class="gh-picker-owner">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
@@ -247,10 +225,6 @@ function renderCards(cards) {
   });
 }
 
-// ============================================================================
-// CLIENT-SIDE SEARCH
-// ============================================================================
-
 function filterCards() {
   const q = document.getElementById('gh-search').value.trim().toLowerCase();
   renderCards(
@@ -262,10 +236,6 @@ function filterCards() {
     ) : _allCards
   );
 }
-
-// ============================================================================
-// DEEP-LINK SUPPORT
-// ============================================================================
 
 async function loadAndOpenFromParams(uid, ghId) {
   try {
@@ -279,15 +249,10 @@ async function loadAndOpenFromParams(uid, ghId) {
   }
 }
 
-// ============================================================================
-// OPEN CONTROL PANEL
-// ============================================================================
-
 function showControlPanel(uid, ghId, ghName, userName) {
   state.uid  = uid;
   state.ghId = ghId;
 
-  // Reset sensor state so stale values from the previous greenhouse never show
   sensorConfig.forEach(c => {
     state.sensors[c.key]     = null;
     state.sensorTimes[c.key] = '—';
@@ -296,7 +261,6 @@ function showControlPanel(uid, ghId, ghName, userName) {
 
   history.replaceState(null, '', `?uid=${uid}&ghId=${ghId}`);
 
-  // Labels
   const el = id => document.getElementById(id);
   if (el('gh-title'))         el('gh-title').textContent    = ghName;
   if (el('gh-subtitle'))      el('gh-subtitle').textContent = `Owner: ${userName} — Real-time monitoring & control`;
@@ -305,20 +269,16 @@ function showControlPanel(uid, ghId, ghName, userName) {
   resetControlUI();
   showControl();
 
-  teardownListeners();        // clear any previous listeners first
+  teardownListeners();
   setupRealtimeListeners();
   loadTargets();
   setupEventListeners();
   initChart();
-  loadHistory();              // seed chart from existing Firebase history
+  loadHistory();
 }
 
-// ============================================================================
-// RESET UI
-// ============================================================================
-
 function resetControlUI() {
-  renderSensorCards();        // shows "—" placeholders
+  renderSensorCards();
 
   document.querySelectorAll('.gh-toggle-switch').forEach(t => {
     t.classList.remove('active');
@@ -338,10 +298,6 @@ function resetControlUI() {
   clear('target-soil');
 }
 
-// ============================================================================
-// DETACH ALL FIREBASE LISTENERS
-// ============================================================================
-
 function teardownListeners() {
   _listeners.forEach(({ dbRef, handler }) => off(dbRef, 'value', handler));
   _listeners.length = 0;
@@ -349,33 +305,17 @@ function teardownListeners() {
   if (chart) { chart.destroy(); chart = null; }
 }
 
-// ============================================================================
-// REALTIME LISTENERS
-// ============================================================================
-
 function setupRealtimeListeners() {
   const base = `users/${state.uid}/greenhouses/${state.ghId}`;
 
-  // ── SENSORS ──────────────────────────────────────────────────────────────
-  //
-  // Firebase shape under sensors/:
-  //   temperature:  { value: 25.7, time: 44 }
-  //   humidity:     { value: 44.6, time: 44 }
-  //   soil:         { value: 191,  time: 44 }
-  //   soil_moisture: 0
-  //   light:        { value: ...,  time: ... }  ← or plain number
-  //   updatedAt:    "2026-05-18T18:12:54"
-  //
   const sensorsRef = ref(database, `${base}/sensors`);
   const sensorsHandler = onValue(sensorsRef, snap => {
     if (!snap.exists()) return;
 
     const raw = snap.val();
 
-    // updatedAt is the ISO string for the whole sensors node
     state.updatedAt = raw.updatedAt || null;
 
-    // Map each sensor key — extract numeric .value if the node is an object
     sensorConfig.forEach(cfg => {
       const node = raw[cfg.key];
       state.sensors[cfg.key]     = readSensorValue(node);
@@ -387,29 +327,19 @@ function setupRealtimeListeners() {
   }, err => console.error('Sensor listener error:', err));
   _listeners.push({ dbRef: sensorsRef, handler: sensorsHandler });
 
-  // ── ACTUATORS ─────────────────────────────────────────────────────────────
-  //
-  // actuators/ { mode, commands/{pump,fan,light,vent}, state/{pump,fan,light,vent} }
-  // We show the real device state (actuators/state/*) as the toggle position,
-  // but we WRITE to actuators/commands/* when the admin clicks a toggle.
-  //
   const actuatorsRef = ref(database, `${base}/actuators`);
   const actuatorsHandler = onValue(actuatorsRef, snap => {
     if (!snap.exists()) return;
     const data = snap.val();
 
-    // Sync mode
     const mode = data.mode || 'auto';
     state.mode = mode;
     syncModeUI(mode);
 
-    // Prefer actuators/state/* (actual hardware state) to show toggle position.
-    // Fall back to actuators/commands/* if state isn't written yet.
     const deviceState = data.state    || {};
     const deviceCmds  = data.commands || {};
 
     ['pump', 'fan', 'light', 'vent'].forEach(device => {
-      // Use state if available (boolean or 1/0), else commands
       const rawVal = (device in deviceState) ? deviceState[device] : deviceCmds[device];
       const isOn   = Boolean(rawVal);
 
@@ -421,7 +351,6 @@ function setupRealtimeListeners() {
   }, err => console.error('Actuators listener error:', err));
   _listeners.push({ dbRef: actuatorsRef, handler: actuatorsHandler });
 
-  // ── CONNECTION ────────────────────────────────────────────────────────────
   const connRef = ref(database, '.info/connected');
   const connHandler = onValue(connRef, snap => {
     state.connected = Boolean(snap.val());
@@ -429,10 +358,6 @@ function setupRealtimeListeners() {
   });
   _listeners.push({ dbRef: connRef, handler: connHandler });
 }
-
-// ============================================================================
-// MODE UI SYNC
-// ============================================================================
 
 function syncModeUI(mode) {
   document.querySelectorAll('.gh-mode-option').forEach(btn => {
@@ -444,9 +369,6 @@ function syncModeUI(mode) {
   if (alert) alert.style.display = isAuto ? 'flex' : 'none';
 }
 
-// ============================================================================
-// EVENT LISTENERS (clones to prevent duplicate handlers)
-// ============================================================================
 
 function setupEventListeners() {
   document.querySelectorAll('.gh-mode-option').forEach(btn => {
@@ -462,10 +384,6 @@ function setupEventListeners() {
   });
 }
 
-// ============================================================================
-// MODE SWITCH
-// ============================================================================
-
 function switchMode(mode) {
   state.mode = mode;
   syncModeUI(mode);
@@ -475,12 +393,6 @@ function switchMode(mode) {
     mode
   ).catch(err => console.error('Error setting mode:', err));
 }
-
-// ============================================================================
-// DEVICE TOGGLE
-// — writes to actuators/commands/{device} (admin intent)
-// — the hardware reads commands and writes back to actuators/state/{device}
-// ============================================================================
 
 function toggleDevice(toggle) {
   if (state.mode === 'auto') return;
@@ -495,10 +407,6 @@ function toggleDevice(toggle) {
     newState
   ).catch(err => console.error(`Error toggling ${device}:`, err));
 }
-
-// ============================================================================
-// TARGETS
-// ============================================================================
 
 function loadTargets() {
   const targetsRef = ref(database, `users/${state.uid}/greenhouses/${state.ghId}/targets`);
@@ -534,16 +442,11 @@ window.resetTarget = function(type) {
   window.saveTarget(type);
 };
 
-// ============================================================================
-// RENDER SENSOR CARDS
-// ============================================================================
-
 function renderSensorCards() {
   const container = document.getElementById('sensors-container');
   if (!container) return;
   container.innerHTML = '';
 
-  // Use the sensors-level updatedAt for the header timestamp if available
   const headerTime = state.updatedAt
     ? new Date(state.updatedAt).toLocaleString()
     : null;
@@ -555,7 +458,6 @@ function renderSensorCards() {
     const status   = hasData ? getValueStatus(rawValue, cfg) : 'unknown';
     const dotClass = status === 'success' ? '' : status === 'unknown' ? 'warning' : status;
 
-    // Show per-sensor time if available, else fall back to node-level updatedAt
     const timeLabel = state.sensorTimes[cfg.key] !== '—'
       ? state.sensorTimes[cfg.key]
       : (headerTime || '—');
@@ -566,7 +468,9 @@ function renderSensorCards() {
     card.innerHTML = `
       <div class="gh-sensor-header">
         <span class="gh-sensor-label">${cfg.label}</span>
-        <span class="gh-sensor-icon">${cfg.icon}</span>
+        <span class="gh-sensor-icon">
+          <i class="${cfg.icon}"></i>
+        </span>
       </div>
       <div class="gh-sensor-value">
         ${display}<span class="gh-sensor-unit">${cfg.unit}</span>
@@ -590,14 +494,8 @@ function getValueStatus(value, cfg) {
   return 'success';
 }
 
-// ============================================================================
-// CHART
-// ============================================================================
-
 let chart = null;
 
-// Tracks the Firebase key of the most-recent history entry we've already
-// plotted, so live updateChart() can avoid adding a duplicate point.
 let _lastHistoryKey = null;
 let _historyLoaded  = false;
 
@@ -690,7 +588,6 @@ function initChart() {
   chart = new Chart(canvas.getContext('2d'), buildChartConfig());
 }
 
-// ── Push a single data point onto the chart ──────────────────────────────────
 function pushChartPoint(label, temp, hum, soilMoisture) {
   if (!chart) return;
 
@@ -699,7 +596,6 @@ function pushChartPoint(label, temp, hum, soilMoisture) {
   chart.data.datasets[1].data.push(hum          ?? null);
   chart.data.datasets[2].data.push(soilMoisture ?? null);
 
-  // Keep at most 48 points so the chart stays readable
   if (chart.data.labels.length > 48) {
     chart.data.labels.shift();
     chart.data.datasets.forEach(d => d.data.shift());
@@ -708,11 +604,7 @@ function pushChartPoint(label, temp, hum, soilMoisture) {
   chart.update('none');
 }
 
-// ── Called by the live sensor listener ───────────────────────────────────────
 function updateChart() {
-  // Skip if loadHistory() hasn't finished yet — it will populate the chart.
-  // We use a flag: once history is loaded, _historyLoaded = true.
-  // Live points added before history finishes would appear out-of-order.
   if (!_historyLoaded) return;
 
   const label = state.updatedAt
@@ -727,23 +619,16 @@ function updateChart() {
   );
 }
 
-// ============================================================================
-// LOAD HISTORY FROM FIREBASE
-// history/{fbKey}/
-//   sensors/   { temperature:{value,time}, humidity:{value,time},
-//                soil:{value,time}, soil_moisture, light:{value,time} }
-//   timestamp/ (ISO string or epoch ms — whichever your MCU writes)
-//   mode/
-//   actuators/
-// ============================================================================
 
 async function loadHistory() {
   if (!state.uid || !state.ghId || !chart) return;
 
-  // Show a subtle loading state on the chart title
+  // Show a Font Awesome spinner instead of an emoji while loading
   const titleEl = document.querySelector('.gh-chart-title');
   const origTitle = titleEl?.textContent || '';
-  if (titleEl) titleEl.textContent = origTitle + '  ⏳ Loading history…';
+  if (titleEl) {
+    titleEl.innerHTML = `${escapeHtml(origTitle)}&nbsp;&nbsp;<i class="fa-solid fa-spinner fa-spin" aria-label="Loading history"></i>`;
+  }
 
   try {
     const histSnap = await get(
@@ -757,42 +642,31 @@ async function loadHistory() {
 
     const raw = histSnap.val();
 
-    // Each key in history/ is the Firebase push-key or a timestamp string.
-    // Sort ascending so the chart goes left=oldest → right=newest.
     const entries = Object.entries(raw).sort(([a], [b]) => {
-      // Firebase push-keys are lexicographically time-ordered, so plain sort works.
-      // ISO strings also sort correctly. Epoch numbers too.
       return a < b ? -1 : a > b ? 1 : 0;
     });
 
-    // Keep only the last 48 entries (24 h if recorded every 30 min, etc.)
     const recent = entries.slice(-48);
 
-    // Clear any points already on the chart (it was empty, but be safe)
     chart.data.labels = [];
     chart.data.datasets.forEach(d => { d.data = []; });
 
     recent.forEach(([fbKey, entry]) => {
-      // ── Derive a human-readable x-axis label ──
-      // Priority: entry.timestamp (ISO/epoch) → entry.sensors.updatedAt → fbKey
       let label = '—';
       if (entry.timestamp) {
         const d = new Date(
           typeof entry.timestamp === 'number'
-            ? entry.timestamp          // epoch ms
-            : entry.timestamp          // ISO string
+            ? entry.timestamp
+            : entry.timestamp
         );
         label = isNaN(d) ? String(entry.timestamp) : d.toLocaleTimeString();
       } else if (entry.sensors?.updatedAt) {
         const d = new Date(entry.sensors.updatedAt);
         label = isNaN(d) ? entry.sensors.updatedAt : d.toLocaleTimeString();
       } else {
-        // Fall back to the Firebase key — push-keys embed a timestamp
-        // Convert the push-key's first 8 chars (base64 epoch) to a time
         label = pushKeyToTime(fbKey);
       }
 
-      // ── Extract sensor values (same logic as live sensors) ──
       const s    = entry.sensors || {};
       const temp = readSensorValue(s.temperature);
       const hum  = readSensorValue(s.humidity);
@@ -803,7 +677,6 @@ async function loadHistory() {
       chart.data.datasets[1].data.push(hum  ?? null);
       chart.data.datasets[2].data.push(soil ?? null);
 
-      // Remember the last key so live updates don't double-plot it
       _lastHistoryKey = fbKey;
     });
 
@@ -813,12 +686,10 @@ async function loadHistory() {
     console.error('History load error:', err);
   } finally {
     if (titleEl) titleEl.textContent = origTitle;
-    _historyLoaded = true;   // allow live updateChart() from here on
+    _historyLoaded = true;
   }
 }
 
-// ── Convert a Firebase push-key to a readable time string ────────────────────
-// Push-keys embed a millisecond timestamp in the first 8 chars (base64 url).
 function pushKeyToTime(key) {
   try {
     const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
@@ -832,10 +703,6 @@ function pushKeyToTime(key) {
     return key.slice(0, 8);
   }
 }
-
-// ============================================================================
-// CONNECTION BADGE
-// ============================================================================
 
 function updateConnectionBadge() {
   const badge = document.getElementById('connection-alert');
@@ -851,9 +718,6 @@ function updateConnectionBadge() {
   }
 }
 
-// ============================================================================
-// NOTIFICATION TOAST
-// ============================================================================
 
 function showNotification(message, type = 'success') {
   const n = document.createElement('div');
@@ -865,9 +729,6 @@ function showNotification(message, type = 'success') {
   setTimeout(() => n.remove(), 3000);
 }
 
-// ============================================================================
-// UTILITY
-// ============================================================================
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c =>

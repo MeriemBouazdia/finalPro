@@ -185,14 +185,13 @@ class _RegisterScreenState extends State<RegisterScreen>
       builder: (_) => AlertDialog(
         title: const Text('Account Created'),
         content: const Text(
-          'Your account is pending admin approval. '
-          "You'll be notified once approved.",
+          'Your account is successfully created!',
         ),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // close dialog
-              Navigator.pushReplacementNamed(context, '/main'); // go to main
+              Navigator.pop(context); 
+              Navigator.pushReplacementNamed(context, '/main'); 
             },
             child: const Text('OK'),
           ),
@@ -499,7 +498,8 @@ class _FormField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+      style: const TextStyle(
+          fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

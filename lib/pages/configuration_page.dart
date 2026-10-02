@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import '../l10n/translations.dart';
+import 'package:app/l10n/translations.dart';
 import 'widget/theme_provider.dart';
 
 class ConfigurationPage extends StatefulWidget {

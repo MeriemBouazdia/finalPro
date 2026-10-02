@@ -179,6 +179,7 @@ const Map<String, String> en = {
   'yesDelete': 'Yes, delete',
   'noKeep': 'No, keep',
   'messaging': 'Messaging',
+  'Could not load data': 'Could not load data',
 
   // Sensor History
   'history': 'History',
@@ -244,4 +245,104 @@ const Map<String, String> en = {
   'passwordUpdateFailed': 'Password update failed',
   'unexpectedError': 'An unexpected error occurred',
   'somethingWentWrong': 'Something went wrong. Please try again later.',
+  'heroBannerSubtitle': "We're here to help you manage\nyour smart greenhouse",
+  'quickHelp': 'Quick Help',
+  'faqTitle': 'Frequently Asked Questions',
+  'contactSupport': 'Contact Support',
+
+// Quick Help cards
+  'qhGettingStarted': 'Getting Started',
+  'qhGettingStartedSub': 'Setup your greenhouse in minutes',
+  'qhSensorsGuide': 'Sensors Guide',
+  'qhSensorsGuideSub': 'Understand temperature, humidity & soil',
+  'qhActuatorControl': 'Actuator Control',
+  'qhActuatorControlSub': 'Pump, fan & vent management',
+  'qhNotifications': 'Notifications',
+  'qhNotificationsSub': 'Alerts and smart triggers',
+  'qhAiChatbot': 'AI Chatbot Help',
+  'qhAiChatbotSub': 'Let AI guide your farming decisions',
+  'learnMore': 'Learn more',
+  'opening': 'Opening',
+
+// FAQ
+  'faq1Q': 'How do sensors work?',
+  'faq1A':
+      'Your greenhouse sensors measure temperature, humidity, soil moisture, and light in real-time. They send readings to the app every few seconds via Wi-Fi. If a reading crosses the target threshold, the app alerts you instantly.',
+  'faq2Q': 'How do I set target values?',
+  'faq2A':
+      'Go to the Configuration page and enter your desired temperature and soil moisture targets. The system will automatically compare live sensor data against these values and trigger alerts or automatic actions when thresholds are exceeded.',
+  'faq3Q': 'Why am I receiving alerts?',
+  'faq3A':
+      "Alerts fire when a sensor reading goes above your configured target. For example, if temperature exceeds your target, you'll get a \"🌡️ High Temperature Alert\". Check your targets in the Configuration page if alerts feel too frequent.",
+  'faq4Q': 'How to control pump/fan manually or automatically?',
+  'faq4A':
+      'On the Home page, use the Device Control section. Toggle the mode switch to "Manual" to control each device yourself. Switch to "Automatic" and the system controls them based on your sensor targets.',
+  'faq5Q': 'How does the AI chatbot help farmers?',
+  'faq5A':
+      "The AI chatbot gives personalized advice based on your greenhouse data. Ask it anything — from crop care tips to interpreting sensor readings. It learns your greenhouse's patterns over time to give increasingly relevant suggestions.",
+
+// Contact section
+  'stillNeedHelp': 'Still need help?',
+  'supportAvailability': 'Our support team is\navailable 7 days a week.',
+  'contactSupportBtn': 'Contact Support',
+  'reportProblem': 'Report a Problem',
+  'whatsapp': 'WhatsApp',
+  'emailUs': 'Email Us',
+
+// Errors
+  'whatsappError':
+      'Could not open WhatsApp. Please install the app and try again.',
+  'emailError': 'Could not open your email app. Please try again.',
+
+// Tip card
+  'farmersTip': "Farmer's Tip",
+  'farmersTipBody':
+      'Keep your soil balanced for healthier crops — consistent moisture prevents root stress and boosts yield 🌾',
+  'req8Chars': '8+ characters',
+  'reqUppercase': 'Uppercase A–Z',
+  'reqLowercase': 'Lowercase a–z',
+  'reqNumber': 'Number 0–9',
+  'reqSpecial': 'Special !@#\$…',
+
+// Submit button & footer
+  'updatePasswordBtn': 'Update Password',
+  'encryptedNotice': 'Your data is encrypted and secure',
+
+// Loading overlay
+  'loadingUpdatingPassword': 'Updating Password',
+  'loadingPleaseWait': 'Please wait a moment…',
+
+// SnackBars
+  'snackPasswordUpdated': 'Password Updated',
+  'snackPasswordUpdatedSub':
+      'Your account is now secured with the new password.',
+  'snackUpdateFailed': 'Update Failed',
+  'snackNoEmail': 'No Email Found',
+  'snackNoEmailSub': 'No email address is linked to this account.',
+  'snackResetSent': 'Reset Email Sent',
+  'snackResetFailed': 'Failed to Send',
+  'snackResetSentSub': 'Check ',
+  'snackResetSentSub2': ' for the reset link.',
+  // History page
+  'refresh': 'Refresh',
+  'loadingSensorData': 'Loading sensor data…',
+  'couldNotLoadData': 'Could not load data',
+
+// Metric chips
+  'chipTemp': 'Temp',
+  'chipHumidity': 'Humidity',
+  'chipSoil': 'Soil',
+  'chipLight': 'Light',
+
+// Chart axis labels
+  'axisTemp': 'Temperature (°C)',
+  'axisHumidity': 'Humidity (%)',
+  'axisSoil': 'Soil Moisture',
+  'axisLight': 'Light (lux)',
+
+// Latest card tile labels
+  'tileTemp': 'Temp',
+  'tileHumidity': 'Humidity',
+  'tileSoil': 'Soil',
+  'tileLight': 'Light',
 };

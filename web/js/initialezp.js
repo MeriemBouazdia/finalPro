@@ -1,4 +1,3 @@
-// Replace your initSidebar() function in firebase.js with this:
 
 function initSidebar() {
   const sidebar   = document.getElementById("sidebarEl");

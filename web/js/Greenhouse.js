@@ -18,8 +18,6 @@ const fGhLoc     = document.getElementById("edit-ghlocation");
 let activeUserId = null;
 let activeGhId   = null;
 
-// ─── Open / Close modal ───────────────────────────────────────────────────────
-
 function openModal(userId, ghId, userData, ghData) {
   activeUserId = userId;
   activeGhId   = ghId;
@@ -55,7 +53,6 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && editModal.classList.contains("open")) closeModal();
 });
 
-// ─── Save changes ─────────────────────────────────────────────────────────────
 
 saveBtn.addEventListener("click", async () => {
   if (!activeUserId || !activeGhId) return;
@@ -82,7 +79,6 @@ saveBtn.addEventListener("click", async () => {
   modalStatus.style.color = "#1b6b57";
 
   try {
-    // Update user fields (name, email) and greenhouse fields in one atomic call
     const updates = {};
     updates[`users/${activeUserId}/name`]                              = newName;
     updates[`users/${activeUserId}/email`]                             = newEmail;
@@ -91,7 +87,7 @@ saveBtn.addEventListener("click", async () => {
 
     await update(ref(database), updates);
 
-    modalStatus.textContent = "✅ Saved successfully!";
+    modalStatus.textContent = " Saved successfully!";
     modalStatus.style.color = "#16a34a";
 
     setTimeout(closeModal, 900);
@@ -102,8 +98,6 @@ saveBtn.addEventListener("click", async () => {
     saveBtn.disabled = false;
   }
 });
-
-// ─── Render table ─────────────────────────────────────────────────────────────
 
 onValue(ref(database, "users"), (snapshot) => {
   tbody.innerHTML = "";

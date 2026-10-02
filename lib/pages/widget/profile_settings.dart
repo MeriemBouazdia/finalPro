@@ -46,7 +46,7 @@ class SettingsListTile extends StatelessWidget {
   }
 }
 
-/// A widget that displays profile settings (dark mode, language, help, logout)
+/// A widget that displays profile settings dark mode, language, help, logout
 class ProfileSettings extends StatelessWidget {
   /// Whether dark mode is enabled
   final bool isDarkMode;

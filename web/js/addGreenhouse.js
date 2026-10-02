@@ -5,12 +5,11 @@ import { ref, get, push, query, orderByChild, equalTo }
 const form    = document.getElementById("userForm");
 const message = document.getElementById("message");
 
-// Strips < > & to neutralize HTML injection
+
 function sanitize(str) {
   return str.replace(/[<>&"]/g, "");
 }
 
-// Safely parses threshold: returns the number, or null if blank/invalid
 function parseThreshold(value) {
   const trimmed = value.trim();
   if (trimmed === "") return null;
@@ -29,10 +28,6 @@ form.addEventListener("submit", async (e) => {
   const userEmail   = document.getElementById("email").value.trim();
   const name        = sanitize(document.getElementById("name").value.trim());
   const location    = sanitize(document.getElementById("location").value.trim());
-  const minTemp     = parseThreshold(document.getElementById("minTemp").value);
-  const maxTemp     = parseThreshold(document.getElementById("maxTemp").value);
-  const minHumidity = parseThreshold(document.getElementById("minHumidity").value);
-  const maxHumidity = parseThreshold(document.getElementById("maxHumidity").value);
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail) || name.length < 2 || location.length < 2) {
     message.textContent = "Please fix all required fields.";
@@ -56,14 +51,9 @@ form.addEventListener("submit", async (e) => {
 
     const userId = Object.keys(snapshot.val())[0];
 
-    // push() generates a collision-free unique key (vs Date.now())
     await push(ref(database, `users/${userId}/greenhouses`), {
       name,
       location,
-      minTemp,
-      maxTemp,
-      minHumidity,
-      maxHumidity,
       createdAt: new Date().toISOString(),
     });
 

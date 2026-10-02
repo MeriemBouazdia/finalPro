@@ -1,8 +1,4 @@
-/* ══════════════════════════════════════
-   messages.css — GreenHouse OS Chat Page
-   ══════════════════════════════════════ */
 
-/* ── CSS Variables (matching REDESIGN_SUMMARY) ── */
 :root {
   --bg: #faf9f5;
   --surface: #ffffff;
@@ -515,15 +511,19 @@ html, body {
   display: flex;
   gap: 8px;
   align-items: flex-end;
-  max-width: 75%;
+  width: 100%;
 }
+
 .msg-row.admin {
-  align-self: flex-end;
+  justify-content: flex-end;
   flex-direction: row-reverse;
 }
+
 .msg-row.farmer {
-  align-self: flex-start;
+  justify-content: flex-start;
 }
+
+/* Avatar */
 .msg-avatar {
   width: 28px;
   height: 28px;
@@ -535,30 +535,43 @@ html, body {
   font-weight: 700;
   flex-shrink: 0;
 }
+
+/* Bubble */
 .msg-bubble {
-  padding: 10px 14px;
-  border-radius: 16px;
+  max-width: 75%;
+  padding: 12px 16px;
+  border-radius: 18px;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
+
   word-break: break-word;
+  overflow-wrap: break-word;
+
+  direction: rtl;
+  text-align: right;
 }
+
 .msg-row.farmer .msg-bubble {
   background: var(--surface);
   color: var(--text-primary);
   border: 1px solid var(--divider);
-  border-bottom-left-radius: 4px;
+  border-bottom-left-radius: 6px;
   box-shadow: var(--shadow-xs);
 }
+
 .msg-row.admin .msg-bubble {
   background: var(--green-900);
   color: #fff;
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 6px;
 }
+
 .msg-time {
   font-size: 10px;
   color: var(--text-tertiary);
-  margin-top: 4px;
-  text-align: right;
+  margin-top: 5px;
+}
+.msg-bubble {
+  white-space: pre-wrap;
 }
 .msg-row.admin .msg-time {
   text-align: left;

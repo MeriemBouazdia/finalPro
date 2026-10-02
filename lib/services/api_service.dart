@@ -43,10 +43,6 @@ class ApiService {
     }
   }
 
-  /// Registers a farmer with full details including farm location.
-  ///
-  /// [idToken] — Firebase ID token for auth header.
-  /// Throws [AppException] if the server returns a non-201 status.
   Future<void> registerFarmer({
     required String idToken,
     required String name,

@@ -1,0 +1,256 @@
+/* ═══════════════════════════════════════════════════════
+   fonticon.css — Font Awesome 6 icon system
+   for GreenAdmin greenhouse dashboard
+   ═══════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────
+   Global FA reset — ensures every <i> inside
+   an icon container actually renders
+   ───────────────────────────────────────────── */
+.gh-section-icon i,
+.gh-control-icon i,
+.gh-picker-icon i,
+.gh-picker-meta i,
+.gh-picker-empty-icon i,
+.gh-sensor-icon i,
+.alert-icon i {
+  display: inline-block !important;
+  font-style: normal !important;
+  font-variant: normal !important;
+  text-rendering: auto !important;
+  line-height: 1 !important;
+  font-size: inherit !important;
+  color: inherit !important;
+  visibility: visible !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────────────────────────────────────
+   Section header icons  (Live Sensor Data,
+   Device Controls, Setpoints, History)
+   ───────────────────────────────────────────── */
+.gh-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  background: rgba(22, 163, 74, 0.10);
+  color: #16a34a;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 0.45rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.gh-section-title:hover .gh-section-icon {
+  background: rgba(22, 163, 74, 0.18);
+}
+
+/* ─────────────────────────────────────────────
+   Control card icons  (Mode, Pump, Fan,
+   Grow Light, Vent)
+   ───────────────────────────────────────────── */
+.gh-control-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+
+  /* default green — overridden per card below */
+  background: rgba(22, 163, 74, 0.10);
+  color: #16a34a;
+
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.gh-control-card:hover .gh-control-icon {
+  transform: scale(1.08);
+}
+
+/* Per-card accent colours — nth-child targets the
+   card order inside .gh-actuators-grid             */
+/* Control Mode */
+.gh-actuators-grid .gh-control-card:nth-child(1) .gh-control-icon {
+  background: rgba(22,  163,  74,  0.10);
+  color: #16a34a;
+}
+/* Pump */
+.gh-actuators-grid .gh-control-card:nth-child(2) .gh-control-icon {
+  background: rgba(59,  130, 246, 0.10);
+  color: #3b82f6;
+}
+/* Fan */
+.gh-actuators-grid .gh-control-card:nth-child(3) .gh-control-icon {
+  background: rgba(20,  184, 166, 0.10);
+  color: #14b8a6;
+}
+/* Grow Light */
+.gh-actuators-grid .gh-control-card:nth-child(4) .gh-control-icon {
+  background: rgba(245, 158,  11, 0.10);
+  color: #f59e0b;
+}
+/* Vent */
+.gh-actuators-grid .gh-control-card:nth-child(5) .gh-control-icon {
+  background: rgba(139,  92, 246, 0.10);
+  color: #8b5cf6;
+}
+
+/* ─────────────────────────────────────────────
+   Sensor card icons
+   ───────────────────────────────────────────── */
+.gh-sensor-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  background: var(--surface2, #f3f4f6);
+  color: var(--accent, #16a34a);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.gh-sensor-card:hover .gh-sensor-icon {
+  transform: scale(1.12) rotate(-4deg);
+  background: var(--accent, #16a34a);
+  color: #fff;
+}
+
+/* Per-sensor accent colours */
+#sensor-temperature .gh-sensor-icon { color: #ef4444; }
+#sensor-temperature:hover .gh-sensor-icon { background: #ef4444; color: #fff; }
+
+#sensor-humidity .gh-sensor-icon { color: #3b82f6; }
+#sensor-humidity:hover .gh-sensor-icon { background: #3b82f6; color: #fff; }
+
+#sensor-soil .gh-sensor-icon { color: #a16207; }
+#sensor-soil:hover .gh-sensor-icon { background: #a16207; color: #fff; }
+
+#sensor-light .gh-sensor-icon { color: #f59e0b; }
+#sensor-light:hover .gh-sensor-icon { background: #f59e0b; color: #fff; }
+
+/* ─────────────────────────────────────────────
+   Greenhouse picker card icon
+   ───────────────────────────────────────────── */
+.gh-picker-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #16a34a, #4ade80);
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.gh-picker-card:hover .gh-picker-icon {
+  transform: scale(1.12) rotate(-5deg);
+}
+
+/* ─────────────────────────────────────────────
+   Location meta row
+   ───────────────────────────────────────────── */
+.gh-picker-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 12px;
+  color: var(--text3, #9ca3af);
+  margin-bottom: 0.6rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-picker-meta i {
+  font-size: 0.7rem;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────
+   Empty-state icons
+   ───────────────────────────────────────────── */
+.gh-picker-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--surface2, #f3f4f6);
+  color: #16a34a;
+  font-size: 1.4rem;
+  margin: 0 auto 0.75rem;
+}
+
+.gh-picker-empty-icon--warning {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+/* ─────────────────────────────────────────────
+   Alert icons
+   ───────────────────────────────────────────── */
+.alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────
+   Chart loading spinner
+   ───────────────────────────────────────────── */
+.gh-chart-title .fa-spinner {
+  font-size: 0.85em;
+  color: var(--text3, #9ca3af);
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
+
+/* ─────────────────────────────────────────────
+   Dark-mode overrides
+   ───────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .gh-sensor-icon {
+    background: var(--surface2, #1f2937);
+  }
+
+  .gh-section-icon {
+    background: rgba(22, 163, 74, 0.15);
+  }
+
+  .gh-picker-empty-icon {
+    background: var(--surface2, #1f2937);
+  }
+
+  .gh-picker-empty-icon--warning {
+    background: #450a0a;
+    color: #f87171;
+  }
+
+  /* Slightly brighter icon tints in dark mode */
+  .gh-actuators-grid .gh-control-card:nth-child(1) .gh-control-icon { background: rgba(22,  163,  74,  0.15); }
+  .gh-actuators-grid .gh-control-card:nth-child(2) .gh-control-icon { background: rgba(59,  130, 246, 0.15); }
+  .gh-actuators-grid .gh-control-card:nth-child(3) .gh-control-icon { background: rgba(20,  184, 166, 0.15); }
+  .gh-actuators-grid .gh-control-card:nth-child(4) .gh-control-icon { background: rgba(245, 158,  11, 0.15); }
+  .gh-actuators-grid .gh-control-card:nth-child(5) .gh-control-icon { background: rgba(139,  92, 246, 0.15); }
+}

@@ -1,16 +1,3 @@
-/**
- * EXAMPLE INTEGRATION CODE FOR GREENHOUSE.JS
- * 
- * This shows how to add a "Control" button to your greenhouse table
- * that opens the Greenhouse Control Panel
- * 
- * Location: js/Greenhouse.js
- * Add this code to your existing table row rendering function
- */
-
-// ============================================================================
-// EXAMPLE 1: Simple Control Button in Actions Column
-// ============================================================================
 
 function addControlButtonToTable(userId, userName, userEmail, greenhouseId, greenhouseName, location) {
   // ... your existing code that builds the table row ...
@@ -42,17 +29,10 @@ function addControlButtonToTable(userId, userName, userEmail, greenhouseId, gree
   // Add button to actions cell
   actionsCell.appendChild(controlBtn);
 
-  // ... add your other action buttons (edit, delete, etc) ...
-  // actionsCell.appendChild(editBtn);
-  // actionsCell.appendChild(deleteBtn);
-
+ 
   // Return the cell or add to your row
   return actionsCell;
 }
-
-// ============================================================================
-// EXAMPLE 2: Full Integration with Modal Option
-// ============================================================================
 
 function renderGreenhouseRow(userData) {
   const row = document.createElement('tr');

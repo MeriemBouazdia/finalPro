@@ -390,7 +390,6 @@ export function applyLang(lang) {
   });
 }
 
-/* ─── Dark mode ─────────────────────────────────────────────────────────── */
 export function applyDark(dark) {
   document.documentElement.classList.toggle("dark", dark);
   localStorage.setItem("dark", dark ? "1" : "0");
@@ -402,7 +401,6 @@ const savedDark =
    window.matchMedia("(prefers-color-scheme: dark)").matches);
 applyDark(savedDark);
 
-/* ─── Component loader ───────────────────────────────────────────────────── */
 async function loadComponent(id, url) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -415,7 +413,7 @@ async function loadComponent(id, url) {
   }
 }
 
-/* ─── Sidebar ────────────────────────────────────────────────────────────── */
+
 function initSidebar() {
   const sidebar   = document.getElementById("sidebarEl");
   const overlay   = document.getElementById("sidebarOverlay");
@@ -451,21 +449,17 @@ function initSidebar() {
   });
 }
 
-/* ─── Dark toggle ────────────────────────────────────────────────────────── */
 function initDarkToggle() {
   document.getElementById("darkToggle")?.addEventListener("click", () => {
     applyDark(!document.documentElement.classList.contains("dark"));
   });
 }
 
-/* ─── Language toggle ────────────────────────────────────────────────────── */
 function initLangToggle() {
   document.querySelectorAll("[data-lang]").forEach(btn => {
     btn.addEventListener("click", () => applyLang(btn.dataset.lang));
   });
 }
-
-/* ─── Logout ─────────────────────────────────────────────────────────────── */
 function initLogout() {
   document.getElementById("logoutBtn")?.addEventListener("click", async () => {
     try {
@@ -477,7 +471,7 @@ function initLogout() {
   });
 }
 
-/* ─── Main init ──────────────────────────────────────────────────────────── */
+
 export async function initDashboard(base = ".") {
   await Promise.all([
     loadComponent("header",  `${base}/header.html`),

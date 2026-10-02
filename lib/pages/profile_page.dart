@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-
 import 'package:app/l10n/translations.dart';
 import '../services/profile_service.dart' hide debugPrint;
 import 'widget/profile_header.dart';

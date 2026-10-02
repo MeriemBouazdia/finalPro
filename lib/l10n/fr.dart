@@ -200,51 +200,114 @@ const Map<String, String> fr = {
   'humidityShort': 'Humidité',
   'soilShort': 'Sol',
   'lightShort': 'Lumière',
+  'heroBannerSubtitle':
+      "Nous sommes là pour vous aider\nà gérer votre serre intelligente",
+  'quickHelp': 'Aide rapide',
+  'faqTitle': 'Questions fréquemment posées',
+  'contactSupport': 'Contacter le support',
 
-  // Change Password Page
-  'changePasswordTitle': 'Changer le mot de passe',
-  'changePasswordSubtitle': 'Sécurisez votre compte de serre',
-  'passwordSettings': 'Paramètres de mot de passe',
-  'updateYourCredentials': 'Mettez à jour vos identifiants ci-dessous',
+  'qhGettingStarted': 'Démarrage',
+  'qhGettingStartedSub': 'Configurez votre serre en quelques minutes',
+  'qhSensorsGuide': 'Guide des capteurs',
+  'qhSensorsGuideSub': 'Comprendre la température, l\'humidité et le sol',
+  'qhActuatorControl': 'Contrôle des actionneurs',
+  'qhActuatorControlSub': 'Gestion de la pompe, du ventilateur et de l\'évent',
+  'qhNotifications': 'Notifications',
+  'qhNotificationsSub': 'Alertes et déclencheurs intelligents',
+  'qhAiChatbot': 'Aide du chatbot IA',
+  'qhAiChatbotSub': 'Laissez l\'IA guider vos décisions agricoles',
+  'learnMore': 'En savoir plus',
+  'opening': 'Ouverture de',
+
+  'faq1Q': 'Comment fonctionnent les capteurs?',
+  'faq1A':
+      'Vos capteurs mesurent la température, l\'humidité, l\'humidité du sol et la lumière en temps réel. Ils envoient des relevés à l\'application toutes les quelques secondes via Wi-Fi. Si un relevé dépasse le seuil cible, l\'application vous alerte instantanément.',
+  'faq2Q': 'Comment définir les valeurs cibles?',
+  'faq2A':
+      'Accédez à la page Configuration et entrez vos cibles souhaitées. Le système comparera automatiquement les données en direct avec ces valeurs.',
+  'faq3Q': 'Pourquoi est-ce que je reçois des alertes?',
+  'faq3A':
+      'Les alertes se déclenchent lorsqu\'un relevé dépasse votre cible configurée. Vérifiez vos cibles dans la page Configuration si les alertes semblent trop fréquentes.',
+  'faq4Q':
+      'Comment contrôler la pompe/le ventilateur manuellement ou automatiquement?',
+  'faq4A':
+      'Sur la page d\'accueil, utilisez la section Contrôle des appareils. Basculez en mode "Manuel" pour contrôler chaque appareil vous-même, ou en "Automatique" pour une gestion basée sur vos cibles.',
+  'faq5Q': 'Comment le chatbot IA aide-t-il les agriculteurs?',
+  'faq5A':
+      'Le chatbot IA fournit des conseils personnalisés basés sur les données de votre serre. Posez-lui n\'importe quelle question — des conseils sur les cultures à l\'interprétation des relevés de capteurs.',
+
+  'stillNeedHelp': 'Besoin d\'aide?',
+  'supportAvailability': 'Notre équipe est disponible\n7 jours sur 7.',
+  'contactSupportBtn': 'Contacter le support',
+  'reportProblem': 'Signaler un problème',
+  'whatsapp': 'WhatsApp',
+  'emailUs': 'Nous écrire',
+
+  'whatsappError':
+      'Impossible d\'ouvrir WhatsApp. Veuillez installer l\'application et réessayer.',
+  'emailError':
+      'Impossible d\'ouvrir votre application e-mail. Veuillez réessayer.',
+
+  'farmersTip': 'Conseil d\'agriculteur',
+  'farmersTipBody':
+      'Gardez votre sol équilibré pour des cultures plus saines — une humidité constante prévient le stress racinaire et augmente le rendement 🌾',
+
+  'passwordSettings': 'Paramètres du mot de passe',
+  'passwordSettingsSub': 'Mettez à jour vos identifiants ci-dessous',
+
   'currentPassword': 'Mot de passe actuel',
-  'enterCurrentPassword': 'Entrez votre mot de passe actuel',
-  'forgotPassword': 'Mot de passe oublié?',
+  'currentPasswordHint': 'Entrez votre mot de passe actuel',
   'newPassword': 'Nouveau mot de passe',
-  'createStrongPassword': 'Créez un mot de passe fort',
+  'newPasswordHint': 'Créez un mot de passe fort',
   'confirmNewPassword': 'Confirmer le nouveau mot de passe',
-  'reEnterNewPassword': 'Saisissez à nouveau le nouveau mot de passe',
+  'confirmNewPasswordHint': 'Ressaisissez le nouveau mot de passe',
+  'forgotPassword': 'Mot de passe oublié?',
+
+  'validCurrentRequired': 'Le mot de passe actuel est requis',
+  'validConfirmRequired': 'Veuillez confirmer votre nouveau mot de passe',
+  'validPasswordsMismatch': 'Les mots de passe ne correspondent pas',
+
   'passwordStrength': 'Force du mot de passe',
   'strengthWeak': 'Faible',
   'strengthFair': 'Moyen',
   'strengthGood': 'Bon',
   'strengthStrong': 'Fort',
-  'yourDataIsEncrypted': 'Vos données sont chiffrées et sécurisées',
-  'updatePasswordButton': 'Mettre à jour le mot de passe',
-  'updatingPassword': 'Mise à jour du mot de passe',
-  'pleaseWaitMoment': 'Veuillez patienter un instant…',
-  'passwordUpdated': 'Mot de passe mis à jour',
-  'accountSecuredNewPassword':
-      'Votre compte est maintenant sécurisé avec le nouveau mot de passe.',
-  'updateFailed': 'Mise à jour échouée',
-  'noEmailFound': 'Aucun e-mail trouvé',
-  'noEmailLinked': 'Aucune adresse e-mail liée à ce compte.',
-  'resetEmailSent': 'E-mail de réinitialisation envoyé',
-  'checkEmailForReset': 'Vérifiez {email} pour le lien de réinitialisation.',
-  'failedToSend': 'Échec de l\'envoi',
-  'currentPasswordRequired': 'Le mot de passe actuel est requis',
-  'currentPasswordIncorrect': 'Le mot de passe actuel est incorrect.',
-  'pleaseConfirmPassword': 'Veuillez confirmer votre nouveau mot de passe',
-  'passwordRequirements': '8+ caractères',
-  'requirementUppercase': 'Majuscule A–Z',
-  'requirementLowercase': 'Minuscule a–z',
-  'requirementNumber': 'Numéro 0–9',
-  'requirementSpecial': 'Spécial !@#\$…',
-  'authenticationFailed': 'L\'authentification a échoué',
-  'noUserSignedIn': 'Aucun utilisateur n\'est actuellement connecté.',
-  'noEmailAssociated': 'Aucune adresse e-mail n\'est associée à ce compte.',
-  'reAuthenticationFailed': 'La ré-authentification a échoué',
-  'passwordUpdateFailed': 'Impossible de mettre à jour le mot de passe',
-  'unexpectedError': 'Une erreur inattendue s\'est produite',
-  'somethingWentWrong':
-      'Quelque chose s\'est mal passé. Veuillez réessayer plus tard.'
+
+  'req8Chars': '8+ caractères',
+  'reqUppercase': 'Majuscule A–Z',
+  'reqLowercase': 'Minuscule a–z',
+  'reqNumber': 'Chiffre 0–9',
+  'reqSpecial': 'Spécial !@#\$…',
+
+  'updatePasswordBtn': 'Mettre à jour',
+  'encryptedNotice': 'Vos données sont chiffrées et sécurisées',
+
+  'loadingUpdatingPassword': 'Mise à jour du mot de passe',
+  'loadingPleaseWait': 'Veuillez patienter…',
+
+  'snackPasswordUpdated': 'Mot de passe mis à jour',
+  'snackPasswordUpdatedSub':
+      'Votre compte est désormais sécurisé avec le nouveau mot de passe.',
+  'snackUpdateFailed': 'Échec de la mise à jour',
+  'snackNoEmail': 'Aucun e-mail trouvé',
+  'snackNoEmailSub': 'Aucune adresse e-mail n\'est liée à ce compte.',
+  'snackResetSent': 'E-mail de réinitialisation envoyé',
+  'snackResetFailed': 'Échec de l\'envoi',
+  'snackResetSentSub': 'Consultez ',
+  'snackResetSentSub2': ' pour le lien de réinitialisation.',
+  'refresh': 'Actualiser',
+  'loadingSensorData': 'Chargement des données…',
+  'couldNotLoadData': 'Impossible de charger les données',
+  'chipTemp': 'Temp',
+  'chipHumidity': 'Humidité',
+  'chipSoil': 'Sol',
+  'chipLight': 'Lumière',
+  'axisTemp': 'Température (°C)',
+  'axisHumidity': 'Humidité (%)',
+  'axisSoil': 'Humidité du sol',
+  'axisLight': 'Lumière (lux)',
+  'tileTemp': 'Temp',
+  'tileHumidity': 'Humidité',
+  'tileSoil': 'Sol',
+  'tileLight': 'Lumière',
 };

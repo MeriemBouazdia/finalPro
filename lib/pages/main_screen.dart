@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/l10n/translations.dart';
 import 'home_page.dart';
-import '../screens/bot_page.dart';
+import 'chat_page.dart';
 import 'profile_page.dart';
 import 'configuration_page.dart';
 import 'widget/theme_provider.dart';

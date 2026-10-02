@@ -14,8 +14,44 @@
   <link rel="stylesheet" href="../css/buttons.css">
   <link rel="stylesheet" href="../css/responsive.css">
   <link rel="stylesheet" href="../css/greenhouse-control.css">
+  <link rel="stylesheet" href="../css/fonticon.css">
+
+ <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  crossorigin="anonymous"
+/>
 
   <style>
+
+
+    .gh-section-icon,
+    .gh-control-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 6px;
+      background: rgba(22, 163, 74, 0.10);
+      color: #16a34a;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+      vertical-align: middle;
+      margin-right: 0.4rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .gh-control-title .gh-control-icon {
+      width: 1.6rem;
+      height: 1.6rem;
+      font-size: 0.75rem;
+    }
+
+    .gh-control-card:nth-child(2) .gh-control-icon { background: rgba(59,130,246,0.10); color: #3b82f6; }  /* Pump  – blue   */
+    .gh-control-card:nth-child(3) .gh-control-icon { background: rgba(20,184,166,0.10); color: #14b8a6; }  /* Fan   – teal   */
+    .gh-control-card:nth-child(4) .gh-control-icon { background: rgba(245,158,11,0.10); color: #f59e0b; }  /* Light – amber  */
+    .gh-control-card:nth-child(5) .gh-control-icon { background: rgba(139,92,246,0.10); color: #8b5cf6; }  /* Vent  – purple */
 
     #selector-screen {
       display: flex;
@@ -23,7 +59,6 @@
       gap: 1.5rem;
     }
 
-    /* Search / filter bar */
     .gh-search-bar {
       position: relative;
     }
@@ -92,6 +127,7 @@
       transform: translateY(0);
     }
 
+    /* Picker card — leaf icon badge */
     .gh-picker-icon {
       width: 36px;
       height: 36px;
@@ -100,9 +136,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
+      color: #fff;
       margin-bottom: 0.75rem;
       flex-shrink: 0;
+      transition: transform 0.25s ease;
+    }
+    .gh-picker-card:hover .gh-picker-icon {
+      transform: scale(1.12) rotate(-5deg);
     }
 
     .gh-picker-name {
@@ -122,6 +163,14 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .gh-picker-meta i {
+      font-size: 10px;
+      color: #16a34a;
+      flex-shrink: 0;
     }
 
     .gh-picker-owner {
@@ -184,9 +233,21 @@
       color: var(--text3, #9ca3af);
       font-size: 13px;
     }
-    .gh-picker-empty .gh-picker-empty-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.75rem;
+    .gh-picker-empty-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 50%;
+      background: var(--surface2, #f3f4f6);
+      color: #16a34a;
+      font-size: 1.3rem;
+      margin: 0 auto 0.75rem;
+    }
+    .gh-picker-empty-icon--warning {
+      background: #fef2f2;
+      color: #ef4444;
     }
     .gh-picker-skeleton {
       height: 120px;
@@ -242,8 +303,30 @@
     }
     .gh-breadcrumb span { color: var(--text2, #374151); font-weight: 600; }
 
+    /* ── Chart title loading spinner ── */
+    .gh-chart-title .fa-spinner {
+      font-size: 0.85em;
+      color: var(--text3, #9ca3af);
+      vertical-align: middle;
+    }
+
     /* ── Control screen hidden by default ── */
     #control-screen { display: none; }
+
+    /* ── Dark mode support ── */
+    @media (prefers-color-scheme: dark) {
+      .gh-section-icon,
+      .gh-control-icon {
+        background: rgba(22, 163, 74, 0.15);
+      }
+      .gh-picker-empty-icon {
+        background: var(--surface2, #1f2937);
+      }
+      .gh-picker-empty-icon--warning {
+        background: #450a0a;
+        color: #f87171;
+      }
+    }
   </style>
 </head>
 <body>
@@ -283,7 +366,7 @@
         </div>
 
         <!-- ═══════════════════════════════════════════
-             SCREEN 2 — CONTROL PANEL (hidden until selection)
+             SCREEN 2 — CONTROL PANEL
         ═══════════════════════════════════════════ -->
         <div id="control-screen">
 
@@ -307,41 +390,59 @@
 
           <!-- CONNECTION STATUS -->
           <div id="connection-alert" class="alert alert-info" style="display:none;">
-            <span class="alert-icon">ℹ️</span>
+            <span class="alert-icon">
+              <i class="fa-solid fa-circle-info"></i>
+            </span>
             <span id="connection-text">Connecting to Firebase...</span>
           </div>
 
           <!-- AUTO MODE ALERT -->
           <div id="auto-mode-alert" class="alert alert-info" style="display:none;">
-            <span class="alert-icon">⚙️</span>
+            <span class="alert-icon">
+              <i class="fa-solid fa-gear"></i>
+            </span>
             <span>System is controlling automatically. Switch to MANUAL mode to adjust devices.</span>
           </div>
 
-          <!-- SECTION 1: SENSORS -->
+          <!-- ─────────────────────────────────────────
+               SECTION 1: LIVE SENSOR DATA
+          ───────────────────────────────────────── -->
           <section class="gh-section">
             <div class="gh-section-header">
               <h2 class="gh-section-title">
-                <span class="gh-section-icon">📊</span>
+                <span class="gh-section-icon">
+                  <i class="fa-solid fa-chart-line"></i>
+                </span>
                 Live Sensor Data
               </h2>
             </div>
             <div class="gh-sensors-grid" id="sensors-container"></div>
           </section>
 
-          <!-- SECTION 2: ACTUATORS -->
+          <!-- ─────────────────────────────────────────
+               SECTION 2: DEVICE CONTROLS
+          ───────────────────────────────────────── -->
           <section class="gh-section">
             <div class="gh-section-header">
               <h2 class="gh-section-title">
-                <span class="gh-section-icon">⚙️</span>
+                <span class="gh-section-icon">
+                  <i class="fa-solid fa-gear"></i>
+                </span>
                 Device Controls
               </h2>
             </div>
 
             <div class="gh-actuators-grid">
+
               <!-- MODE SWITCH -->
               <div class="gh-control-card">
                 <div class="gh-control-header">
-                  <div class="gh-control-title"><span class="gh-control-icon">🔄</span>Control Mode</div>
+                  <div class="gh-control-title">
+                    <span class="gh-control-icon">
+                      <i class="fa-solid fa-arrows-rotate"></i>
+                    </span>
+                    Control Mode
+                  </div>
                 </div>
                 <div class="gh-mode-switch" id="mode-switch">
                   <button class="gh-mode-option active" data-mode="auto">AUTO</button>
@@ -353,7 +454,12 @@
               <!-- PUMP -->
               <div class="gh-control-card">
                 <div class="gh-control-header">
-                  <div class="gh-control-title"><span class="gh-control-icon">💧</span>Pump</div>
+                  <div class="gh-control-title">
+                    <span class="gh-control-icon">
+                      <i class="fa-solid fa-droplet"></i>
+                    </span>
+                    Pump
+                  </div>
                 </div>
                 <div class="gh-control-group">
                   <div class="gh-control-item">
@@ -366,7 +472,12 @@
               <!-- FAN -->
               <div class="gh-control-card">
                 <div class="gh-control-header">
-                  <div class="gh-control-title"><span class="gh-control-icon">💨</span>Fan</div>
+                  <div class="gh-control-title">
+                    <span class="gh-control-icon">
+                      <i class="fa-solid fa-fan"></i>
+                    </span>
+                    Fan
+                  </div>
                 </div>
                 <div class="gh-control-group">
                   <div class="gh-control-item">
@@ -379,7 +490,12 @@
               <!-- LIGHT -->
               <div class="gh-control-card">
                 <div class="gh-control-header">
-                  <div class="gh-control-title"><span class="gh-control-icon">💡</span>Grow Light</div>
+                  <div class="gh-control-title">
+                    <span class="gh-control-icon">
+                      <i class="fa-solid fa-lightbulb"></i>
+                    </span>
+                    Grow Light
+                  </div>
                 </div>
                 <div class="gh-control-group">
                   <div class="gh-control-item">
@@ -392,7 +508,12 @@
               <!-- VENT -->
               <div class="gh-control-card">
                 <div class="gh-control-header">
-                  <div class="gh-control-title"><span class="gh-control-icon">🌬️</span>Vent</div>
+                  <div class="gh-control-title">
+                    <span class="gh-control-icon">
+                      <i class="fa-solid fa-wind"></i>
+                    </span>
+                    Vent
+                  </div>
                 </div>
                 <div class="gh-control-group">
                   <div class="gh-control-item">
@@ -401,15 +522,20 @@
                   </div>
                 </div>
               </div>
+
             </div>
           </section>
 
-          <!-- SECTION 3: TARGETS -->
+          <!-- ─────────────────────────────────────────
+               SECTION 3: SETPOINTS & TARGETS
+          ───────────────────────────────────────── -->
           <section class="gh-section">
             <div class="gh-section-header">
               <h2 class="gh-section-title">
-                <span class="gh-section-icon">🎯</span>
-                Setpoints & Targets
+                <span class="gh-section-icon">
+                  <i class="fa-solid fa-bullseye"></i>
+                </span>
+                Setpoints &amp; Targets
               </h2>
             </div>
             <div class="gh-targets-grid">
@@ -438,16 +564,20 @@
             </div>
           </section>
 
-          <!-- SECTION 4: HISTORY -->
+          <!-- ─────────────────────────────────────────
+               SECTION 4: 24-HOUR HISTORY CHART
+          ───────────────────────────────────────── -->
           <section class="gh-section">
             <div class="gh-section-header">
               <h2 class="gh-section-title">
-                <span class="gh-section-icon">📈</span>
+                <span class="gh-section-icon">
+                  <i class="fa-solid fa-chart-area"></i>
+                </span>
                 24-Hour History
               </h2>
             </div>
             <div class="gh-chart-container">
-              <div class="gh-chart-title">Temperature & Humidity Trend</div>
+              <div class="gh-chart-title">Temperature &amp; Humidity Trend</div>
               <div class="gh-chart-wrapper">
                 <canvas id="history-chart"></canvas>
               </div>

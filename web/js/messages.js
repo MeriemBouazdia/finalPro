@@ -1,16 +1,3 @@
-// ══════════════════════════════════════════════════════════════════
-//  messages.js — GreenHouse OS Chat
-//
-//  Data structure:
-//    /users/{uid}/          ← user profile (name, email, role …)
-//    /users/{uid}/messages/ ← chat thread between admin and this user
-//      {pushKey}/
-//        text      : string
-//        sender    : "admin" | "user"
-//        timestamp : serverTimestamp
-//        read      : boolean
-// ══════════════════════════════════════════════════════════════════
-
 import { database } from "./main.js";
 
 import {
@@ -22,10 +9,6 @@ import {
   query,
   orderByChild,
 } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
-// ══════════════════════════════════════
-//  HELPERS
-// ══════════════════════════════════════
 
 const AVATAR_COLORS = [
   { bg: "#d1fae5", text: "#166534" },
@@ -71,19 +54,13 @@ function escapeHtml(str) {
     .replace(/"/g,  "&quot;");
 }
 
-// ══════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════
 
-let currentUid       = null;   // uid of the user currently open in chat
+let currentUid       = null;   
 let currentUserName  = null;
-let users            = {};     // { uid: { name, email, role, … } }
-let msgListeners     = {};     // uid → unsubscribe fn  (prevent duplicate listeners)
-let activeMsgUnsub   = null;   // unsubscribe for the currently-open chat listener
+let users            = {};     
+let msgListeners     = {};   
+let activeMsgUnsub   = null;   
 
-// ══════════════════════════════════════
-//  USERS LIST  — reads /users/{uid}
-// ══════════════════════════════════════
 
 onValue(ref(database, "users"), snap => {
   users = {};
@@ -99,7 +76,7 @@ onValue(ref(database, "users"), snap => {
   renderUsersList();
 });
 
-// ── Render the left-panel list ────────────────────────────────────────────────
+// Render the left-panel list
 
 function renderUsersList(filter = "") {
   const list  = document.getElementById("farmersList");
@@ -153,14 +130,11 @@ function renderUsersList(filter = "") {
     item.addEventListener("click", () => openChat(u.uid, displayName));
     list.appendChild(item);
 
-    // Subscribe to the last-message preview for this user
     listenLastMsg(u.uid);
   });
 
   updateTotalUnread();
 }
-
-// ── Subscribe to last message for preview + unread count ─────────────────────
 
 function listenLastMsg(uid) {
   if (msgListeners[uid]) return;   // already subscribed
@@ -197,8 +171,6 @@ function listenLastMsg(uid) {
   });
 }
 
-// ── Total unread badge in the sidebar nav ─────────────────────────────────────
-
 function updateTotalUnread() {
   let total = 0;
   document.querySelectorAll("[id^='unread-']").forEach(el => {
@@ -210,10 +182,6 @@ function updateTotalUnread() {
     badge.style.display = total > 0 ? "flex" : "none";
   }
 }
-
-// ══════════════════════════════════════
-//  OPEN CHAT
-// ══════════════════════════════════════
 
 function openChat(uid, userName) {
   currentUid      = uid;
@@ -282,10 +250,6 @@ function openChat(uid, userName) {
   loadMessages(uid);
 }
 
-// ══════════════════════════════════════
-//  LOAD MESSAGES  — /users/{uid}/messages
-// ══════════════════════════════════════
-
 function loadMessages(uid) {
   // Detach previous listener
   if (activeMsgUnsub) {
@@ -317,8 +281,6 @@ function loadMessages(uid) {
     snap.forEach(child => {
       const msg    = child.val();
       const msgKey = child.key;
-
-      // ── Date divider ──────────────────────────────────────────────────
       const msgDate = msg.timestamp
         ? new Date(msg.timestamp).toLocaleDateString()
         : "";
@@ -332,8 +294,6 @@ function loadMessages(uid) {
           : msgDate;
         area.appendChild(divider);
       }
-
-      // ── Message bubble ────────────────────────────────────────────────
       const isAdmin = msg.sender === "admin";
       const col     = getAvatarColor(uid);
 
@@ -355,8 +315,7 @@ function loadMessages(uid) {
         </div>
       `;
       area.appendChild(row);
-
-      // Mark user→admin messages as read
+   //read true
       if (msg.sender === "user" && !msg.read) {
         set(ref(database, `users/${uid}/messages/${msgKey}/read`), true)
           .catch(() => {});
@@ -379,7 +338,7 @@ function sendMessage() {
     text,
     sender:    "admin",
     timestamp: serverTimestamp(),
-    read:      true,   // admin wrote it, so it's already "read" on admin side
+    read:      true,   
   }).catch(err => console.error("Send error:", err));
 
   input.value        = "";
